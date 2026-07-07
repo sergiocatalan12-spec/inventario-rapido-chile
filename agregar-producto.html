@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Agregar Producto — Inventario Rápido Chile</title>
+<style>
+  :root {
+    --azul: #0A2540;
+    --verde: #00C853;
+    --verde-oscuro: #009624;
+    --gris-claro: #F5F7FA;
+    --gris-medio: #E2E8F0;
+    --gris-texto: #64748B;
+    --blanco: #FFFFFF;
+    --amarillo: #F59E0B;
+    --rojo: #EF4444;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--gris-claro);
+    color: var(--azul);
+    min-height: 100vh;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  .header {
+    background: var(--azul);
+    color: white;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .header-back {
+    font-size: 20px;
+    cursor: pointer;
+    opacity: 0.7;
+  }
+  .header h1 { font-size: 17px; font-weight: 700; }
+
+  .contenido { padding: 20px; }
+
+  /* ESTADO DE FOTOS */
+  .fotos-estado {
+    background: var(--blanco);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+
+  .fotos-titulo {
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+  .fotos-subtitulo {
+    font-size: 14px;
+    color: var(--gris-texto);
+    margin-bottom: 20px;
+    line-height: 1.4;
+  }
+
+  /* GRID DE FOTOS */
+  .fotos-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .foto-slot {
+    aspect-ratio: 1;
+    border-radius: 14px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+  .foto-slot:active { transform: scale(0.96); }
+
+  .foto-slot-vacio {
+    background: var(--gris-claro);
+    border: 2px dashed var(--gris-medio);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .foto-slot-vacio .icono { font-size: 28px; }
+  .foto-slot-vacio .label {
+    font-size: 11px;
+    color: var(--gris-texto);
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.3;
+  }
+
+  .foto-slot-lleno img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .foto-slot-lleno .overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .foto-slot-lleno:hover .overlay { opacity: 1; }
+  .foto-slot-lleno .check {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: var(--verde);
+    color: white;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  /* BOTON CAMARA */
+  .btn-foto {
+    width: 100%;
+    padding: 20px;
+    background: var(--azul);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-size: 17px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: transform 0.1s, background 0.2s;
+    margin-bottom: 10px;
+  }
+  .btn-foto:active { transform: scale(0.97); background: #1A3A5C; }
+  .btn-foto .icono-cam { font-size: 24px; }
+
+  /* PANEL DE IA */
+  .ia-panel {
+    background: var(--blanco);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    display: none;
+  }
+  .ia-panel.visible { display: block; }
+
+  .ia-analizando {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: rgba(0,200,83,0.06);
+    border-radius: 12px;
+    margin-bottom: 16px;
+  }
+  .ia-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--gris-medio);
+    border-top-color: var(--verde);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .ia-analizando-texto { font-size: 14px; font-weight: 600; }
+
+  /* SUGERENCIA DE IA */
+  .ia-sugerencia {
+    background: rgba(0,200,83,0.06);
+    border: 1px solid rgba(0,200,83,0.2);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 12px;
+    display: none;
+  }
+  .ia-sugerencia.visible { display: block; }
+  .ia-sugerencia-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .ia-badge {
+    background: var(--verde);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .ia-sugerencia-titulo { font-size: 13px; font-weight: 700; }
+  .ia-sugerencia-texto { font-size: 13px; color: var(--gris-texto); line-height: 1.5; }
+
+  /* CAMPOS DETECTADOS */
+  .campos-detectados { display: none; }
+  .campos-detectados.visible { display: block; }
+
+  .campo-grupo { margin-bottom: 14px; }
+  .campo-grupo label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gris-texto);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .campo-grupo input,
+  .campo-grupo select,
+  .campo-grupo textarea {
+    width: 100%;
+    padding: 13px 14px;
+    border: 2px solid var(--gris-medio);
+    border-radius: 12px;
+    font-size: 15px;
+    color: var(--azul);
+    background: var(--blanco);
+    outline: none;
+    transition: border-color 0.2s;
+    font-family: inherit;
+  }
+  .campo-grupo input:focus,
+  .campo-grupo select:focus,
+  .campo-grupo textarea:focus {
+    border-color: var(--verde);
+  }
+  .campo-grupo textarea {
+    resize: none;
+    height: 80px;
+    font-size: 13px;
+  }
+  .campo-detectado-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--verde-oscuro);
+    font-weight: 600;
+    margin-top: 4px;
+  }
+
+  .campos-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  /* CANTIDAD */
+  .cantidad-control {
+    display: flex;
+    align-items: center;
+    background: var(--gris-claro);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .btn-cant {
+    width: 56px;
+    height: 56px;
+    background: var(--azul);
+    color: white;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+    flex-shrink: 0;
+  }
+  .btn-cant:active { background: #1A3A5C; }
+  .cantidad-input {
+    flex: 1;
+    text-align: center;
+    font-size: 28px;
+    font-weight: 800;
+    border: none;
+    background: transparent;
+    outline: none;
+    color: var(--azul);
+    padding: 0;
+  }
+
+  /* BOTONES FINALES */
+  .btn-guardar {
+    width: 100%;
+    padding: 18px;
+    background: var(--verde);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-size: 17px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.1s, background 0.2s;
+    margin-bottom: 10px;
+    display: none;
+  }
+  .btn-guardar.visible { display: block; }
+  .btn-guardar:active { transform: scale(0.97); background: var(--verde-oscuro); }
+
+  .btn-cancelar {
+    width: 100%;
+    padding: 16px;
+    background: transparent;
+    color: var(--gris-texto);
+    border: 2px solid var(--gris-medio);
+    border-radius: 16px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  /* PROGRESO */
+  .progreso-fotos {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .progreso-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--gris-medio);
+    transition: all 0.3s;
+  }
+  .progreso-dot.activo { background: var(--verde); transform: scale(1.3); }
+  .progreso-texto {
+    font-size: 12px;
+    color: var(--gris-texto);
+    margin-left: 4px;
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(120px);
+    background: var(--azul);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: transform 0.3s;
+    z-index: 999;
+    white-space: nowrap;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  }
+  .toast.visible { transform: translateX(-50%) translateY(0); }
+
+  input[type="file"] { display: none; }
+
+  .info-calidad {
+    font-size: 12px;
+    color: var(--gris-texto);
+    text-align: center;
+    padding: 8px;
+    line-height: 1.4;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-back">←</div>
+  <h1>Agregar producto nuevo</h1>
+</div>
+
+<div class="contenido">
+
+  <!-- PANEL DE FOTOS -->
+  <div class="fotos-estado">
+    <div class="fotos-titulo">Fotografía el producto</div>
+    <div class="fotos-subtitulo">La IA leerá las fotos y completará los datos automáticamente. Cuantas más fotos, mejor queda registrado.</div>
+
+    <!-- PROGRESO -->
+    <div class="progreso-fotos">
+      <div class="progreso-dot" id="dot-0"></div>
+      <div class="progreso-dot" id="dot-1"></div>
+      <div class="progreso-dot" id="dot-2"></div>
+      <div class="progreso-texto" id="progreso-texto">Sin fotos aún</div>
+    </div>
+
+    <!-- GRID FOTOS -->
+    <div class="fotos-grid">
+      <div class="foto-slot foto-slot-vacio" id="slot-0" onclick="tomarFoto(0)">
+        <div class="icono">📦</div>
+        <div class="label">Frente del producto</div>
+      </div>
+      <div class="foto-slot foto-slot-vacio" id="slot-1" onclick="tomarFoto(1)">
+        <div class="icono">🔍</div>
+        <div class="label">Código de barras</div>
+      </div>
+      <div class="foto-slot foto-slot-vacio" id="slot-2" onclick="tomarFoto(2)">
+        <div class="icono">📋</div>
+        <div class="label">Parte trasera</div>
+      </div>
+    </div>
+
+    <!-- BOTÓN CÁMARA -->
+    <button class="btn-foto" onclick="tomarFotoSiguiente()">
+      <span class="icono-cam">📷</span>
+      <span id="btn-foto-texto">Tomar primera foto</span>
+    </button>
+
+    <div class="info-calidad" id="info-calidad">
+      Una foto del frente es suficiente para empezar
+    </div>
+  </div>
+
+  <!-- PANEL IA -->
+  <div class="ia-panel" id="ia-panel">
+
+    <!-- ANALIZANDO -->
+    <div class="ia-analizando" id="ia-analizando" style="display:none;">
+      <div class="ia-spinner"></div>
+      <div>
+        <div class="ia-analizando-texto">Analizando la foto...</div>
+        <div style="font-size:12px;color:var(--gris-texto);margin-top:2px;">La IA está leyendo el producto</div>
+      </div>
+    </div>
+
+    <!-- SUGERENCIA DE MÁS FOTOS -->
+    <div class="ia-sugerencia" id="ia-sugerencia">
+      <div class="ia-sugerencia-header">
+        <div class="ia-badge">IA</div>
+        <div class="ia-sugerencia-titulo" id="sugerencia-titulo"></div>
+      </div>
+      <div class="ia-sugerencia-texto" id="sugerencia-texto"></div>
+    </div>
+
+    <!-- CAMPOS DETECTADOS -->
+    <div class="campos-detectados" id="campos-detectados">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+        <div class="ia-badge">IA</div>
+        <div style="font-size:14px;font-weight:700;">Datos detectados — revisa y corrige si es necesario</div>
+      </div>
+
+      <div class="campo-grupo">
+        <label>Nombre del producto</label>
+        <input type="text" id="campo-nombre" placeholder="Ej: Nescafé Fina Selección" />
+        <div class="campo-detectado-badge" id="badge-nombre" style="display:none;">✓ Detectado por IA</div>
+      </div>
+
+      <div class="campos-row">
+        <div class="campo-grupo">
+          <label>Marca</label>
+          <input type="text" id="campo-marca" placeholder="Ej: Nescafé" />
+          <div class="campo-detectado-badge" id="badge-marca" style="display:none;">✓ IA</div>
+        </div>
+        <div class="campo-grupo">
+          <label>Formato</label>
+          <input type="text" id="campo-formato" placeholder="Ej: 170g" />
+          <div class="campo-detectado-badge" id="badge-formato" style="display:none;">✓ IA</div>
+        </div>
+      </div>
+
+      <div class="campo-grupo">
+        <label>Categoría</label>
+        <select id="campo-categoria">
+          <option value="">Seleccionar...</option>
+          <option>Bebidas gaseosas</option>
+          <option>Aguas y jugos</option>
+          <option>Café, té e infusiones</option>
+          <option>Lácteos</option>
+          <option>Snacks y golosinas</option>
+          <option>Chocolates y confites</option>
+          <option>Abarrotes secos</option>
+          <option>Conservas y enlatados</option>
+          <option>Panadería y repostería</option>
+          <option>Limpieza del hogar</option>
+          <option>Higiene personal</option>
+          <option>Cigarrillos y tabaco</option>
+          <option>Cervezas</option>
+          <option>Licores y vinos</option>
+          <option>Congelados</option>
+          <option>Carnes y fiambres</option>
+          <option>Frutas y verduras</option>
+          <option>Otro</option>
+        </select>
+        <div class="campo-detectado-badge" id="badge-categoria" style="display:none;">✓ Detectado por IA</div>
+      </div>
+
+      <div class="campo-grupo" id="campo-descripcion-grupo" style="display:none;">
+        <label>Descripción adicional</label>
+        <textarea id="campo-descripcion" placeholder="Ingredientes, información nutricional u otros datos del producto..."></textarea>
+        <div class="campo-detectado-badge" id="badge-descripcion" style="display:none;">✓ Detectado por IA</div>
+      </div>
+
+      <div class="campo-grupo">
+        <label>Cantidad en stock</label>
+        <div class="cantidad-control">
+          <button class="btn-cant" onclick="cambiarCant(-1)">−</button>
+          <input class="cantidad-input" type="number" id="campo-cantidad" value="1" min="0" />
+          <button class="btn-cant" onclick="cambiarCant(1)">+</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BOTONES FINALES -->
+  <button class="btn-guardar" id="btn-guardar" onclick="guardar()">
+    ✓ Guardar producto
+  </button>
+
+  <button class="btn-cancelar" onclick="history.back()">
+    Cancelar
+  </button>
+
+</div>
+
+<div class="toast" id="toast"></div>
+<input type="file" id="input-camara" accept="image/*" capture="environment" onchange="procesarFoto(event)" />
+
+<script>
+var CLAUDE_API = 'https://api.anthropic.com/v1/messages';
+var ANTHROPIC_KEY = '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';
+var SUPABASE_URL = 'https://vqwgxshbxixsbqxrejpi.supabase.co';
+var SUPABASE_KEY = 'sb_publishable_7kPWMGQhvmDTmVkcqVVsZw_zRWJDYc3';
+var fotos = [null, null, null];
+var fotosBase64 = [null, null, null];
+var fotoActual = 0;
+var datosDetectados = {};
+
+// ═══════════════════════════════════════════
+// TOMAR FOTOS
+// ═══════════════════════════════════════════
+function tomarFoto(indice) {
+  fotoActual = indice;
+  document.getElementById('input-camara').click();
+}
+
+function tomarFotoSiguiente() {
+  var siguiente = fotos.findIndex(f => f === null);
+  if (siguiente === -1) siguiente = 0;
+  fotoActual = siguiente;
+  document.getElementById('input-camara').click();
+}
+
+async function procesarFoto(event) {
+  var file = event.target.files[0];
+  if (!file) return;
+
+  var url = URL.createObjectURL(file);
+  fotos[fotoActual] = url;
+
+  var base64 = await fileToBase64(file);
+  fotosBase64[fotoActual] = base64;
+
+  actualizarSlot(fotoActual, url);
+  actualizarProgreso();
+  event.target.value = '';
+
+  mostrarPanelIA();
+  await analizarFotos();
+}
+
+function fileToBase64(file) {
+  return new Promise(function(resolve) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var base64 = e.target.result.split(',')[1];
+      resolve(base64);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ═══════════════════════════════════════════
+// UI FOTOS
+// ═══════════════════════════════════════════
+function actualizarSlot(indice, url) {
+  var slot = document.getElementById('slot-' + indice);
+  slot.className = 'foto-slot foto-slot-lleno';
+  slot.innerHTML =
+    '<img src="' + url + '" />' +
+    '<div class="overlay" onclick="tomarFoto(' + indice + ')">🔄</div>' +
+    '<div class="check">✓</div>';
+}
+
+function actualizarProgreso() {
+  var cantidad = fotos.filter(f => f !== null).length;
+  var textos = ['Sin fotos aún', '1 foto tomada', '2 fotos tomadas', '3 fotos tomadas'];
+  var infos = [
+    'Una foto del frente es suficiente para empezar',
+    'Buena foto — puedes agregar más o guardar ahora',
+    'Muy buena cobertura del producto',
+    'Excelente — el producto quedará muy bien documentado ✓'
+  ];
+
+  document.getElementById('progreso-texto').textContent = textos[cantidad];
+  document.getElementById('info-calidad').textContent = infos[cantidad];
+
+  for (var i = 0; i < 3; i++) {
+    var dot = document.getElementById('dot-' + i);
+    dot.className = 'progreso-dot' + (i < cantidad ? ' activo' : '');
+  }
+
+  var siguiente = fotos.findIndex(f => f === null);
+  var textoBtn = siguiente === -1 ? 'Tomar foto adicional' :
+    ['Tomar primera foto', 'Agregar otra foto', 'Agregar foto trasera'][siguiente];
+  document.getElementById('btn-foto-texto').textContent = textoBtn;
+}
+
+// ═══════════════════════════════════════════
+// IA - ANÁLISIS DE FOTOS
+// ═══════════════════════════════════════════
+function mostrarPanelIA() {
+  var panel = document.getElementById('ia-panel');
+  panel.classList.add('visible');
+  document.getElementById('ia-analizando').style.display = 'flex';
+  document.getElementById('ia-sugerencia').classList.remove('visible');
+}
+
+async function analizarFotos() {
+  var fotosDisponibles = fotosBase64.filter(f => f !== null);
+  if (fotosDisponibles.length === 0) return;
+
+  try {
+    var contenido = [];
+
+    fotosDisponibles.forEach(function(base64, i) {
+      var labels = ['frente del producto', 'código de barras o etiqueta lateral', 'parte trasera con información nutricional o descripción'];
+      contenido.push({
+        type: 'text',
+        text: 'Foto ' + (i + 1) + ' (' + (labels[i] || 'foto adicional') + '):'
+      });
+      contenido.push({
+        type: 'image',
+        source: { type: 'base64', media_type: 'image/jpeg', data: base64 }
+      });
+    });
+
+    contenido.push({
+      type: 'text',
+      text: `Eres un asistente de inventario para almacenes chilenos. Analiza estas fotos de un producto y responde SOLO en JSON válido, sin texto adicional, sin markdown.
+
+Extrae toda la información visible. Si un campo no está claro en las fotos, usa null.
+
+Responde exactamente con este formato JSON:
+{
+  "nombre": "nombre completo del producto como aparece en la etiqueta",
+  "marca": "marca del producto",
+  "formato": "peso, volumen o cantidad (ej: 170g, 1.5L, x6 unidades)",
+  "categoria": "una de estas categorías: Bebidas gaseosas, Aguas y jugos, Café té e infusiones, Lácteos, Snacks y golosinas, Chocolates y confites, Abarrotes secos, Conservas y enlatados, Panadería y repostería, Limpieza del hogar, Higiene personal, Cigarrillos y tabaco, Cervezas, Licores y vinos, Congelados, Carnes y fiambres, Frutas y verduras, Otro",
+  "descripcion": "descripción adicional si hay información nutricional, ingredientes u otros datos relevantes visibles en las fotos",
+  "confianza": "alta, media o baja según qué tan clara es la información en las fotos",
+  "necesita_mas_fotos": true o false,
+  "que_falta": "descripción breve de qué foto adicional ayudaría, o null si no necesita más"
+}`
+    });
+
+    var response = await fetch(CLAUDE_API, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ANTHROPIC_KEY,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: contenido }]
+      })
+    });
+
+    var data = await response.json();
+    var texto = data.content[0].text;
+    var resultado = JSON.parse(texto);
+
+    mostrarResultadoIA(resultado);
+
+  } catch(e) {
+    document.getElementById('ia-analizando').style.display = 'none';
+    mostrarToast('⚠️ No se pudo analizar la foto — completa los datos manualmente');
+    mostrarCamposVacios();
+  }
+}
+
+function mostrarResultadoIA(resultado) {
+  document.getElementById('ia-analizando').style.display = 'none';
+
+  datosDetectados = resultado;
+
+  if (resultado.nombre) {
+    document.getElementById('campo-nombre').value = resultado.nombre;
+    document.getElementById('badge-nombre').style.display = 'flex';
+  }
+  if (resultado.marca) {
+    document.getElementById('campo-marca').value = resultado.marca;
+    document.getElementById('badge-marca').style.display = 'flex';
+  }
+  if (resultado.formato) {
+    document.getElementById('campo-formato').value = resultado.formato;
+    document.getElementById('badge-formato').style.display = 'flex';
+  }
+  if (resultado.categoria) {
+    var select = document.getElementById('campo-categoria');
+    for (var i = 0; i < select.options.length; i++) {
+      if (select.options[i].text.toLowerCase().includes(resultado.categoria.toLowerCase().split(' ')[0])) {
+        select.selectedIndex = i;
+        break;
+      }
+    }
+    document.getElementById('badge-categoria').style.display = 'flex';
+  }
+  if (resultado.descripcion) {
+    document.getElementById('campo-descripcion').value = resultado.descripcion;
+    document.getElementById('campo-descripcion-grupo').style.display = 'block';
+    document.getElementById('badge-descripcion').style.display = 'flex';
+  }
+
+  document.getElementById('campos-detectados').classList.add('visible');
+  document.getElementById('btn-guardar').classList.add('visible');
+
+  if (resultado.necesita_mas_fotos && resultado.que_falta && fotos.filter(f => f !== null).length < 3) {
+    var sugerencia = document.getElementById('ia-sugerencia');
+    document.getElementById('sugerencia-titulo').textContent = 'Una foto más ayudaría';
+    document.getElementById('sugerencia-texto').textContent = resultado.que_falta;
+    sugerencia.classList.add('visible');
+  }
+
+  var msg = resultado.confianza === 'alta'
+    ? '✓ Datos detectados con alta confianza'
+    : resultado.confianza === 'media'
+    ? '⚡ Datos detectados — revisa que todo esté correcto'
+    : '⚠️ Imagen poco clara — revisa los datos';
+
+  mostrarToast(msg);
+}
+
+function mostrarCamposVacios() {
+  document.getElementById('campos-detectados').classList.add('visible');
+  document.getElementById('btn-guardar').classList.add('visible');
+}
+
+// ═══════════════════════════════════════════
+// CANTIDAD Y GUARDAR
+// ═══════════════════════════════════════════
+function cambiarCant(delta) {
+  var input = document.getElementById('campo-cantidad');
+  input.value = Math.max(0, (parseInt(input.value) || 0) + delta);
+}
+
+function guardar() {
+  var nombre = document.getElementById('campo-nombre').value.trim();
+  var marca = document.getElementById('campo-marca').value.trim();
+  var cantidad = parseInt(document.getElementById('campo-cantidad').value) || 0;
+
+  if (!nombre) {
+    mostrarToast('⚠️ Escribe el nombre del producto');
+    document.getElementById('campo-nombre').focus();
+    return;
+  }
+  if (!marca) {
+    mostrarToast('⚠️ Escribe la marca');
+    document.getElementById('campo-marca').focus();
+    return;
+  }
+
+  var producto = {
+    nombre: nombre,
+    marca: marca,
+    formato: document.getElementById('campo-formato').value.trim(),
+    categoria: document.getElementById('campo-categoria').value,
+    descripcion: document.getElementById('campo-descripcion').value.trim(),
+    cantidad: cantidad,
+    foto_principal: fotos[0],
+    pendiente_validacion: true,
+    detectado_por_ia: Object.keys(datosDetectados).length > 0
+  };
+
+  mostrarToast('✓ ' + nombre + ' guardado correctamente');
+
+  setTimeout(function() {
+    console.log('Producto guardado:', producto);
+    alert('Producto guardado:\n\n' + nombre + '\n' + marca + '\nCantidad: ' + cantidad);
+  }, 800);
+}
+
+// ═══════════════════════════════════════════
+// UTILIDADES
+// ═══════════════════════════════════════════
+var toastTimer;
+function mostrarToast(msg) {
+  var toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('visible');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function() { toast.classList.remove('visible'); }, 3000);
+}
+</script>
+</body>
+</html>
