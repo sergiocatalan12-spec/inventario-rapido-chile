@@ -333,10 +333,26 @@
           <span id="btn-buscar-text">Buscar</span>
         </button>
       </div>
+      <button class="btn btn-primary" style="width:100%; justify-content:center; background:#2C3E50; margin-bottom:8px;" onclick="abrirEscaner()">
+        📷 Escanear código de barra
+      </button>
       <button class="btn btn-secondary" style="width:100%; justify-content:center;" onclick="buscarPorNombre()">
         🔤 Buscar por nombre
       </button>
       <div id="search-error"></div>
+    </div>
+
+    <!-- MODAL ESCANER -->
+    <div id="scanner-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:999; flex-direction:column; align-items:center; justify-content:center;">
+      <div style="color:white; font-size:16px; font-weight:700; margin-bottom:16px;">📷 Apunta al código de barra</div>
+      <div style="position:relative; width:100%; max-width:400px;">
+        <video id="scanner-video" style="width:100%; border-radius:12px; display:block;" autoplay playsinline muted></video>
+        <div style="position:absolute; inset:0; border:3px solid #C0392B; border-radius:12px; pointer-events:none;"></div>
+        <div style="position:absolute; top:50%; left:10%; right:10%; height:2px; background:rgba(192,57,43,0.7); transform:translateY(-50%);"></div>
+      </div>
+      <canvas id="scanner-canvas" style="display:none;"></canvas>
+      <div id="scanner-status" style="color:rgba(255,255,255,0.7); font-size:13px; margin-top:12px;">Iniciando cámara...</div>
+      <button class="btn" style="margin-top:20px; background:white; color:#2C3E50; font-weight:700;" onclick="cerrarEscaner()">✕ Cancelar</button>
     </div>
 
     <div id="results-count"></div>
@@ -384,11 +400,21 @@
       <div class="form-group">
         <label>Foto del producto</label>
         <div class="foto-upload" id="foto-drop">
-          <input type="file" id="foto-input" accept="image/*" onchange="previewFoto(event)">
+          <input type="file" id="foto-input" accept="image/*" capture="environment" onchange="previewFoto(event)">
           <div class="icon">📷</div>
           <p>Toca para tomar foto o seleccionar imagen</p>
         </div>
-        <img id="foto-preview" class="foto-preview" alt="Vista previa">
+        <div id="foto-preview-container" style="display:none; margin-top:10px;">
+          <img id="foto-preview" class="foto-preview" alt="Vista previa" style="display:block;">
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <button type="button" class="btn btn-secondary" style="flex:1; justify-content:center;" onclick="cambiarFoto()">
+              📷 Cambiar foto
+            </button>
+            <button type="button" class="btn" style="flex:1; justify-content:center; background:#FADBD8; color:#922B21;" onclick="eliminarFoto()">
+              🗑️ Eliminar foto
+            </button>
+          </div>
+        </div>
         <input type="hidden" id="foto-url" value="">
       </div>
 
@@ -631,13 +657,27 @@ function previewFoto(event) {
 
   const reader = new FileReader();
   reader.onload = (e) => {
-    const preview = document.getElementById('foto-preview');
-    preview.src = e.target.result;
-    preview.style.display = 'block';
+    document.getElementById('foto-preview').src = e.target.result;
+    document.getElementById('foto-preview-container').style.display = 'block';
+    document.getElementById('foto-drop').style.display = 'none';
     fotoBase64 = e.target.result;
     document.getElementById('foto-url').value = e.target.result;
   };
   reader.readAsDataURL(file);
+}
+
+function cambiarFoto() {
+  document.getElementById('foto-input').value = '';
+  document.getElementById('foto-input').click();
+}
+
+function eliminarFoto() {
+  document.getElementById('foto-preview').src = '';
+  document.getElementById('foto-preview-container').style.display = 'none';
+  document.getElementById('foto-drop').style.display = 'block';
+  document.getElementById('foto-input').value = '';
+  fotoBase64 = '';
+  document.getElementById('foto-url').value = '';
 }
 
 // ============================================================
@@ -825,6 +865,65 @@ function setBtnLoading(id, loading, text) {
 window.addEventListener('load', () => {
   document.getElementById('barcode-input').focus();
 });
+
+// ============================================================
+// ESCÁNER DE CÁMARA
+// ============================================================
+let scannerStream = null;
+let scannerInterval = null;
+
+async function abrirEscaner() {
+  const modal = document.getElementById('scanner-modal');
+  modal.style.display = 'flex';
+  document.getElementById('scanner-status').textContent = 'Iniciando cámara...';
+
+  try {
+    scannerStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+    });
+    const video = document.getElementById('scanner-video');
+    video.srcObject = scannerStream;
+    await video.play();
+    document.getElementById('scanner-status').textContent = 'Apunta al código de barra';
+
+    // Cargar librería de escaneo dinámicamente
+    if (!window.BarcodeDetector) {
+      // Usar BarcodeDetector nativo si está disponible (Chrome Android/iOS)
+      document.getElementById('scanner-status').textContent = 'Tu navegador no soporta escaneo nativo. Usa el campo de texto.';
+      return;
+    }
+
+    const detector = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'code_128', 'code_39', 'upc_a', 'upc_e'] });
+
+    scannerInterval = setInterval(async () => {
+      const video = document.getElementById('scanner-video');
+      if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
+
+      try {
+        const barcodes = await detector.detect(video);
+        if (barcodes.length > 0) {
+          const codigo = barcodes[0].rawValue;
+          cerrarEscaner();
+          document.getElementById('barcode-input').value = codigo;
+          document.getElementById('scanner-status').textContent = `Código detectado: ${codigo}`;
+          buscarPorCodigo();
+        }
+      } catch(e) {}
+    }, 300);
+
+  } catch (err) {
+    document.getElementById('scanner-status').textContent = '❌ No se pudo acceder a la cámara. Revisa los permisos.';
+  }
+}
+
+function cerrarEscaner() {
+  document.getElementById('scanner-modal').style.display = 'none';
+  if (scannerInterval) { clearInterval(scannerInterval); scannerInterval = null; }
+  if (scannerStream) {
+    scannerStream.getTracks().forEach(t => t.stop());
+    scannerStream = null;
+  }
+}
 </script>
 </body>
 </html>
