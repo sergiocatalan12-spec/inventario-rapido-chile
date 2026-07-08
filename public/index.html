@@ -35,6 +35,7 @@ header p { font-size:11px; opacity:0.85; }
 .row .btn { width:auto; margin-bottom:0; }
 input, select { width:100%; padding:13px 14px; border:2px solid var(--borde); border-radius:10px; font-size:15px; outline:none; background:white; color:var(--texto); -webkit-appearance:none; appearance:none; margin-bottom:12px; transition:border-color 0.2s; }
 input:focus, select:focus { border-color:var(--rojo); }
+input.obligatorio { border-color:var(--rojo) !important; }
 .flabel { font-size:11px; font-weight:700; color:var(--suave); margin-bottom:4px; display:block; text-transform:uppercase; letter-spacing:0.5px; }
 .fotos-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:6px; margin-bottom:14px; }
 .fthumb { position:relative; aspect-ratio:1; border-radius:8px; overflow:hidden; border:2px solid var(--borde); }
@@ -51,6 +52,11 @@ input:focus, select:focus { border-color:var(--rojo); }
 .ia-ok strong { display:block; margin-bottom:4px; font-size:14px; }
 .ia-err { background:linear-gradient(135deg,#f39c12,#e67e22); }
 .ia-err strong { display:block; margin-bottom:4px; }
+.barcode-box { background:var(--gris); border:2px dashed var(--borde); border-radius:10px; padding:16px; margin-bottom:14px; text-align:center; position:relative; }
+.barcode-box.leido { background:#D5F5E3; border-color:var(--verde); border-style:solid; }
+.barcode-box .bc-icon { font-size:32px; margin-bottom:6px; }
+.barcode-box p { font-size:13px; color:var(--suave); margin-bottom:10px; }
+.barcode-box .bc-numero { font-size:18px; font-weight:800; color:var(--azul); font-family:monospace; margin-bottom:8px; }
 .pcard { background:white; border-radius:12px; padding:14px; box-shadow:0 1px 4px rgba(0,0,0,0.08); margin-bottom:10px; display:flex; gap:12px; align-items:flex-start; animation:fadeIn 0.2s; }
 @keyframes fadeIn { from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);} }
 .pimg { width:72px; height:72px; object-fit:contain; border-radius:8px; background:var(--gris); flex-shrink:0; border:1px solid var(--borde); }
@@ -96,6 +102,7 @@ input:focus, select:focus { border-color:var(--rojo); }
   <div class="tab" onclick="showTab('exportar',this)">📊 Exportar</div>
 </div>
 
+<!-- SCANNER MODAL -->
 <div id="scan-modal">
   <h3>📷 Apunta al código de barra</h3>
   <div id="scan-div"></div>
@@ -111,13 +118,10 @@ input:focus, select:focus { border-color:var(--rojo); }
   <div class="section active" id="tab-buscar">
     <div class="card">
       <div class="row">
-        <input type="text" id="b-input" placeholder="Código o nombre del producto..." inputmode="numeric" autocomplete="off" onkeydown="if(event.key==='Enter')buscarCodigo()">
+        <input type="text" id="b-input" placeholder="Escribe el código o nombre..." inputmode="numeric" autocomplete="off" onkeydown="if(event.key==='Enter')buscarCodigo()">
         <button class="btn btn-rojo btn-sm" style="width:auto;" onclick="buscarCodigo()"><span id="b-txt">Buscar</span></button>
       </div>
-      <button class="btn btn-azul" style="position:relative;">
-        📷 Escanear código de barra
-        <input type="file" id="buscar-foto-input" accept="image/*" style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;" onchange="leerCodigoBuscar(event)">
-      </button>
+      <button class="btn btn-azul" onclick="abrirScan()">📷 Escanear código de barra</button>
       <button class="btn btn-gris" style="margin-bottom:0;" onclick="buscarNombre()">🔤 Buscar por nombre</button>
       <div id="b-err"></div>
     </div>
@@ -132,12 +136,13 @@ input:focus, select:focus { border-color:var(--rojo); }
     <div class="card">
       <h2>➕ Agregar producto</h2>
 
-      <label class="flabel">📷 Fotos del producto</label>
-      <p style="font-size:12px;color:var(--suave);margin-bottom:8px;">Toma una foto — la IA completará los datos automáticamente</p>
+      <!-- PASO 1: FOTO PRODUCTO -->
+      <label class="flabel">Paso 1 — Foto del producto</label>
+      <p style="font-size:12px;color:var(--suave);margin-bottom:8px;">La IA completará los datos automáticamente</p>
       <div class="fotos-grid" id="fgrid">
         <div class="fadd">
           <input type="file" id="finput" accept="image/*" multiple onchange="agregarFotos(event)">
-          <span>📷</span><span class="s">Agregar foto</span>
+          <span>📷</span><span class="s">Tomar foto</span>
         </div>
       </div>
 
@@ -151,22 +156,29 @@ input:focus, select:focus { border-color:var(--rojo); }
         <span id="ia-txt"></span>
       </div>
       <div class="ia-box ia-err" id="ia-err">
-        <strong>⚠️ No se pudo analizar la imagen</strong>
+        <strong>⚠️ No se pudo analizar</strong>
         <span id="ia-err-txt">Completa los datos manualmente</span>
       </div>
 
-      <label class="flabel">Nombre del producto *</label>
-      <input type="text" id="a-nombre" placeholder="Ej: Nescafé Tradición 170g">
-
-      <label class="flabel">Código de barra (opcional)</label>
-      <div class="row">
-        <input type="text" id="a-barcode" placeholder="7802900001234" inputmode="numeric">
-        <button class="btn btn-azul btn-sm" style="width:auto;position:relative;" onclick="document.getElementById('scan-foto-input').click()">
-          📷
-          <input type="file" id="scan-foto-input" accept="image/*" style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;" onchange="leerCodigoFoto(event)">
-        </button>
+      <!-- PASO 2: CÓDIGO DE BARRA -->
+      <label class="flabel">Paso 2 — Código de barra <span style="color:var(--rojo)">*obligatorio</span></label>
+      <div class="barcode-box" id="barcode-box">
+        <div class="bc-icon">📊</div>
+        <p>Toma una foto del código de barra del producto</p>
+        <div style="position:relative;">
+          <button class="btn btn-azul" style="margin-bottom:8px;">
+            📷 Fotografiar código de barra
+            <input type="file" id="bc-foto-input" accept="image/*" capture="environment" style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;" onchange="leerCodigoFoto(event)">
+          </button>
+        </div>
+        <p style="font-size:11px;">O escríbelo manualmente:</p>
+        <input type="text" id="a-barcode" placeholder="7802900001234" inputmode="numeric" style="margin-bottom:0;margin-top:6px;" oninput="onBarcodeInput()">
       </div>
-      <div id="scan-ia-msg" style="display:none;font-size:12px;color:var(--suave);margin-top:-8px;margin-bottom:8px;">🤖 Leyendo código...</div>
+      <div id="bc-msg" style="font-size:12px;margin-bottom:12px;display:none;"></div>
+
+      <!-- DATOS DEL PRODUCTO -->
+      <label class="flabel">Nombre del producto <span style="color:var(--rojo)">*obligatorio</span></label>
+      <input type="text" id="a-nombre" placeholder="Ej: Nescafé Tradición 170g">
 
       <label class="flabel">Marca</label>
       <input type="text" id="a-marca" placeholder="Ej: Nescafé, Colún, Carozzi">
@@ -235,19 +247,19 @@ input:focus, select:focus { border-color:var(--rojo); }
 </div>
 
 <script>
-const SB = 'https://vqwgxshbxixsbqxrejpi.supabase.co';
-const SK = 'sb_publishable_7kPWMGQhvmDTmVkcqVVsZw_zRWJDYc3';
-const H = { 'apikey':SK, 'Authorization':`Bearer ${SK}`, 'Content-Type':'application/json' };
+const SB='https://vqwgxshbxixsbqxrejpi.supabase.co';
+const SK='sb_publishable_7kPWMGQhvmDTmVkcqVVsZw_zRWJDYc3';
+const H={'apikey':SK,'Authorization':`Bearer ${SK}`,'Content-Type':'application/json'};
 
-let ultimoResultado=[], ultimoCodigo='', fotos=[], scanModo='buscar', qr=null;
+let ultimoResultado=[],ultimoCodigo='',fotos=[],qr=null;
 
 // INIT
 (async()=>{
-  try {
-    const r = await fetch(`${SB}/rest/v1/products?select=id`,{headers:{...H,'Prefer':'count=exact','Range':'0-0'}});
-    const ct = r.headers.get('Content-Range')?.split('/')[1];
-    document.getElementById('hcount').textContent = ct ? `${parseInt(ct).toLocaleString('es-CL')} productos` : 'Base de datos nacional';
-  } catch(e){ document.getElementById('hcount').textContent='Base de datos nacional'; }
+  try{
+    const r=await fetch(`${SB}/rest/v1/products?select=id`,{headers:{...H,'Prefer':'count=exact','Range':'0-0'}});
+    const ct=r.headers.get('Content-Range')?.split('/')[1];
+    document.getElementById('hcount').textContent=ct?`${parseInt(ct).toLocaleString('es-CL')} productos`:'Base de datos nacional';
+  }catch(e){document.getElementById('hcount').textContent='Base de datos nacional';}
 })();
 
 // TABS
@@ -310,7 +322,7 @@ async function buscarNombre(){
 
 function mostrar(prods){
   if(!prods.length){noResultado('');return;}
-  document.getElementById('b-count').innerHTML=`${prods.length} producto(s) encontrado(s)`;
+  document.getElementById('b-count').innerHTML=`✅ ${prods.length} producto(s) encontrado(s)`;
   document.getElementById('b-results').innerHTML=prods.map(p=>{
     const img=p.image_url?`<img src="${p.image_url}" class="pimg" onerror="this.style.display='none'">`:`<div class="pph">📦</div>`;
     const badge=p.status==='aprobado'?'bv':'ba';
@@ -333,9 +345,11 @@ function noResultado(cod){
 function irAgregar(){
   document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===1));
   document.querySelectorAll('.section').forEach((s,i)=>s.classList.toggle('active',i===1));
-  if(ultimoCodigo) document.getElementById('a-barcode').value=ultimoCodigo;
+  if(ultimoCodigo){
+    document.getElementById('a-barcode').value=ultimoCodigo;
+    marcarBarcodeLeido(ultimoCodigo);
+  }
   window.scrollTo(0,0);
-  document.getElementById('a-nombre').focus();
 }
 
 // FOTOS + IA
@@ -365,58 +379,135 @@ async function analizarIA(b64){
   document.getElementById('ia-ok').style.display='none';
   document.getElementById('ia-err').style.display='none';
   try{
-    const imageBase64=b64.split(',')[1];
-    const mediaType=b64.split(';')[0].split(':')[1];
-
-    // Llamar a nuestra función serverless (evita bloqueo de Safari)
-    const res=await fetch('/api/analizar',{
+    const resp=await fetch('/api/analizar',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({imageBase64,mediaType})
+      body:JSON.stringify({imageBase64:b64.split(',')[1],mediaType:b64.split(';')[0].split(':')[1],modo:'producto'})
     });
-
-    if(!res.ok){
-      const err=await res.json();
-      throw new Error(err.error||'Error del servidor');
-    }
-
-    const info=await res.json();
-
+    if(!resp.ok) throw new Error('Error del servidor');
+    const info=await resp.json();
     if(info.nombre) document.getElementById('a-nombre').value=info.nombre;
     if(info.marca) document.getElementById('a-marca').value=info.marca;
     if(info.categoria) document.getElementById('a-cat').value=info.categoria;
     if(info.formato) document.getElementById('a-format').value=info.formato;
     if(info.unidad) document.getElementById('a-unit').value=info.unidad;
-
     document.getElementById('ia-txt').textContent=`${info.nombre||''} · ${info.marca||''} · ${info.formato||''}`;
     document.getElementById('ia-ok').style.display='block';
   }catch(e){
-    document.getElementById('ia-err-txt').textContent=`Error: ${e.message}. Completa los datos manualmente.`;
+    document.getElementById('ia-err-txt').textContent='No se pudo analizar. Completa los datos manualmente.';
     document.getElementById('ia-err').style.display='block';
   }
   document.getElementById('ia-load').style.display='none';
 }
 
+// CÓDIGO DE BARRA - LEER DESDE FOTO
+async function leerCodigoFoto(event){
+  const file=event.target.files[0];
+  if(!file) return;
+  event.target.value='';
+  
+  const box=document.getElementById('barcode-box');
+  const msg=document.getElementById('bc-msg');
+  msg.style.display='block';
+  msg.style.color=getComputedStyle(document.documentElement).getPropertyValue('--suave');
+  msg.textContent='🔍 Leyendo código de barra...';
+
+  try{
+    // Load ZXing if needed
+    if(!window.ZXing){
+      await new Promise((res,rej)=>{
+        const s=document.createElement('script');
+        s.src='https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js';
+        s.onload=res; s.onerror=rej;
+        document.head.appendChild(s);
+      });
+    }
+    
+    const reader=new ZXing.BrowserMultiFormatReader();
+    const url=URL.createObjectURL(file);
+    
+    try{
+      const result=await reader.decodeFromImageUrl(url);
+      URL.revokeObjectURL(url);
+      const codigo=result.getText();
+      document.getElementById('a-barcode').value=codigo;
+      marcarBarcodeLeido(codigo);
+      msg.textContent='';
+      msg.style.display='none';
+    }catch(e){
+      URL.revokeObjectURL(url);
+      msg.style.color='#922B21';
+      msg.textContent='⚠️ No se detectó código. Ingrésalo manualmente en el campo de abajo.';
+    }
+  }catch(e){
+    msg.style.color='#922B21';
+    msg.textContent='⚠️ Error al cargar el lector. Ingrésalo manualmente.';
+  }
+}
+
+function marcarBarcodeLeido(codigo){
+  const box=document.getElementById('barcode-box');
+  box.classList.add('leido');
+  box.innerHTML=`
+    <div class="bc-icon">✅</div>
+    <div class="bc-numero">${codigo}</div>
+    <input type="text" id="a-barcode" value="${codigo}" inputmode="numeric" style="margin-bottom:8px;text-align:center;" oninput="onBarcodeInput()">
+    <button class="btn btn-gris btn-sm" style="max-width:200px;margin:0 auto;" onclick="resetBarcode()">🔄 Cambiar código</button>`;
+}
+
+function resetBarcode(){
+  const box=document.getElementById('barcode-box');
+  box.classList.remove('leido');
+  box.innerHTML=`
+    <div class="bc-icon">📊</div>
+    <p>Toma una foto del código de barra del producto</p>
+    <div style="position:relative;">
+      <button class="btn btn-azul" style="margin-bottom:8px;">
+        📷 Fotografiar código de barra
+        <input type="file" id="bc-foto-input" accept="image/*" capture="environment" style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;" onchange="leerCodigoFoto(event)">
+      </button>
+    </div>
+    <p style="font-size:11px;">O escríbelo manualmente:</p>
+    <input type="text" id="a-barcode" placeholder="7802900001234" inputmode="numeric" style="margin-bottom:0;margin-top:6px;" oninput="onBarcodeInput()">`;
+  document.getElementById('bc-msg').style.display='none';
+}
+
+function onBarcodeInput(){
+  const val=document.getElementById('a-barcode').value.trim();
+  if(val.length>=8) marcarBarcodeLeido(val);
+}
+
 // GUARDAR
 async function guardar(){
   const nombre=document.getElementById('a-nombre').value.trim();
-  if(!nombre){document.getElementById('a-msg').innerHTML='<div class="merr">❌ El nombre es obligatorio.</div>';return;}
+  const barcode=document.getElementById('a-barcode')?.value.trim();
+
+  if(!nombre){
+    document.getElementById('a-msg').innerHTML='<div class="merr">❌ El nombre del producto es obligatorio.</div>';
+    return;
+  }
+  if(!barcode){
+    document.getElementById('a-msg').innerHTML='<div class="merr">❌ El código de barra es obligatorio. Fotografía o escribe el código.</div>';
+    return;
+  }
+
   setBtn('g-txt',true,'Guardando...');
   document.getElementById('a-msg').innerHTML='';
   try{
-    const barcode=document.getElementById('a-barcode').value.trim();
-    if(barcode){
-      const chk=await fetch(`${SB}/rest/v1/barcodes?barcode=eq.${encodeURIComponent(barcode)}&select=id`,{headers:H});
-      const ex=await chk.json();
-      if(ex.length){document.getElementById('a-msg').innerHTML='<div class="merr">⚠️ Ese código ya existe.</div>';setBtn('g-txt',false,'✓ Guardar producto');return;}
+    const chk=await fetch(`${SB}/rest/v1/barcodes?barcode=eq.${encodeURIComponent(barcode)}&select=id`,{headers:H});
+    const ex=await chk.json();
+    if(ex.length){
+      document.getElementById('a-msg').innerHTML='<div class="merr">⚠️ Ese código de barra ya existe en la base de datos.</div>';
+      setBtn('g-txt',false,'✓ Guardar producto');
+      return;
     }
     const pr=await fetch(`${SB}/rest/v1/products`,{
       method:'POST',headers:{...H,'Prefer':'return=representation'},
       body:JSON.stringify({normalized_name:nombre,format:document.getElementById('a-format').value.trim()||null,unit:document.getElementById('a-unit').value})
     });
-    if(!pr.ok) throw new Error((await pr.json()).message);
+    if(!pr.ok) throw new Error((await pr.json()).message||'Error al guardar');
     const [prod]=await pr.json();
-    if(barcode) await fetch(`${SB}/rest/v1/barcodes`,{method:'POST',headers:H,body:JSON.stringify({barcode,product_id:prod.id})});
+    await fetch(`${SB}/rest/v1/barcodes`,{method:'POST',headers:H,body:JSON.stringify({barcode,product_id:prod.id})});
     document.getElementById('a-msg').innerHTML='<div class="mok">✅ Producto guardado correctamente</div>';
     limpiar();
     const r=await fetch(`${SB}/rest/v1/products?select=id`,{headers:{...H,'Prefer':'count=exact','Range':'0-0'}});
@@ -429,11 +520,18 @@ async function guardar(){
 }
 
 function limpiar(){
-  ['a-nombre','a-barcode','a-marca','a-format'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('a-cat').value='';
-  document.getElementById('a-unit').value='unidad';
+  ['a-nombre','a-marca','a-format'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.value='';
+  });
+  const cat=document.getElementById('a-cat');
+  if(cat) cat.value='';
+  const unit=document.getElementById('a-unit');
+  if(unit) unit.value='unidad';
   fotos=[]; renderFotos();
+  resetBarcode();
   ['ia-load','ia-ok','ia-err'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('bc-msg').style.display='none';
 }
 
 // ESTADÍSTICAS
@@ -480,9 +578,8 @@ function exportarBusqueda(){
   XLSX.writeFile(wb,`busqueda-${new Date().toISOString().substring(0,10)}.xlsx`);
 }
 
-// ESCÁNER
-function abrirScan(modo){
-  scanModo=modo;
+// ESCÁNER BUSCAR
+function abrirScan(){
   document.getElementById('scan-modal').style.display='flex';
   document.getElementById('scan-status').textContent='Iniciando cámara...';
   document.getElementById('scan-div').innerHTML='';
@@ -493,89 +590,19 @@ function abrirScan(modo){
   Html5Qrcode.getCameras().then(cameras=>{
     if(!cameras||!cameras.length){document.getElementById('scan-status').textContent='❌ No se encontró cámara.';return;}
     const cam=cameras.find(c=>/back|trasera|rear|environment/i.test(c.label))||cameras[cameras.length-1];
-    const w = Math.min(window.innerWidth - 40, 340);
+    const w=Math.min(window.innerWidth-40,320);
     qr.start(cam.id,
-      {fps:15, qrbox:{width:w, height:Math.round(w*0.4)},
-       aspectRatio:1.7777,
+      {fps:15,qrbox:{width:w,height:Math.round(w*0.4)},aspectRatio:1.777,
        formatsToSupport:[
          Html5QrcodeSupportedFormats.EAN_13,Html5QrcodeSupportedFormats.EAN_8,
          Html5QrcodeSupportedFormats.CODE_128,Html5QrcodeSupportedFormats.CODE_39,
-         Html5QrcodeSupportedFormats.UPC_A,Html5QrcodeSupportedFormats.UPC_E,
-         Html5QrcodeSupportedFormats.ITF
+         Html5QrcodeSupportedFormats.UPC_A,Html5QrcodeSupportedFormats.UPC_E
        ]},
-      (code)=>{
-        cerrarScan();
-        if(scanModo==='agregar') document.getElementById('a-barcode').value=code;
-        else{document.getElementById('b-input').value=code;buscarCodigo();}
-      },()=>{}
+      (code)=>{cerrarScan();document.getElementById('b-input').value=code;buscarCodigo();},
+      ()=>{}
     ).then(()=>{document.getElementById('scan-status').textContent='📦 Apunta al código de barra';})
-    .catch(err=>{document.getElementById('scan-status').textContent=`❌ Sin acceso a cámara. En iPhone: Ajustes → Safari → Cámara → Permitir`;});
+    .catch(()=>{document.getElementById('scan-status').textContent='❌ Sin acceso a cámara. Permite el acceso en Ajustes del celular.';});
   }).catch(()=>{document.getElementById('scan-status').textContent='❌ No se pudo acceder a la cámara.';});
-}
-
-async function leerCodigoFoto(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  event.target.value = '';
-  const msg = document.getElementById('scan-ia-msg');
-  msg.style.display = 'block';
-  msg.textContent = '🤖 Leyendo código de barra...';
-  try {
-    const b64 = await new Promise((res,rej) => {
-      const r = new FileReader();
-      r.onload = e => res(e.target.result);
-      r.onerror = rej;
-      r.readAsDataURL(file);
-    });
-    const imageBase64 = b64.split(',')[1];
-    const mediaType = b64.split(';')[0].split(':')[1];
-    const resp = await fetch('/api/analizar', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({imageBase64, mediaType, modo: 'barcode'})
-    });
-    const data = await resp.json();
-    if (data.barcode) {
-      document.getElementById('a-barcode').value = data.barcode;
-      msg.textContent = '✅ Código leído: ' + data.barcode;
-    } else {
-      msg.textContent = '⚠️ No se detectó código. Ingrésalo manualmente.';
-    }
-  } catch(e) {
-    msg.textContent = '⚠️ Error al leer. Ingrésalo manualmente.';
-  }
-}
-
-async function leerCodigoBuscar(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  event.target.value = '';
-  try {
-    const b64 = await new Promise((res,rej) => {
-      const r = new FileReader();
-      r.onload = e => res(e.target.result);
-      r.onerror = rej;
-      r.readAsDataURL(file);
-    });
-    const imageBase64 = b64.split(',')[1];
-    const mediaType = b64.split(';')[0].split(':')[1];
-    document.getElementById('b-input').value = '';
-    document.getElementById('b-results').innerHTML = '<div class="estado"><div class="ico">⏳</div><p>Leyendo código...</p></div>';
-    const resp = await fetch('/api/analizar', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({imageBase64, mediaType, modo: 'barcode'})
-    });
-    const data = await resp.json();
-    if (data.barcode) {
-      document.getElementById('b-input').value = data.barcode;
-      buscarCodigo();
-    } else {
-      document.getElementById('b-results').innerHTML = '<div class="estado"><div class="ico">⚠️</div><p>No se detectó código. Ingrésalo manualmente.</p></div>';
-    }
-  } catch(e) {
-    document.getElementById('b-results').innerHTML = '<div class="estado"><div class="ico">⚠️</div><p>Error al leer el código.</p></div>';
-  }
 }
 
 function cerrarScan(){
