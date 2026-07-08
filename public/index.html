@@ -140,6 +140,9 @@ input:focus, select:focus { border-color:var(--rojo); }
       <label class="flabel">Contraseña</label>
       <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')entrar()">
       <button class="btn btn-rojo" onclick="entrar()"><span id="login-btn-txt">Entrar</span></button>
+      <div style="text-align:center;margin-top:10px;">
+        <span onclick="recuperar()" style="font-size:13px;color:var(--azul);cursor:pointer;text-decoration:underline;">¿Olvidaste tu contraseña?</span>
+      </div>
       <div id="login-msg"></div>
     </div>
 
@@ -364,6 +367,22 @@ async function registrar(){
   } else {
     document.getElementById('reg-msg').innerHTML='<div class="mok">✅ Cuenta creada. Revisa tu email para confirmar.</div>';
     setBtn('reg-btn-txt',false,'Crear cuenta');
+  }
+}
+
+async function recuperar(){
+  const email=document.getElementById('login-email').value.trim();
+  if(!email){
+    document.getElementById('login-msg').innerHTML='<div class="merr">❌ Ingresa tu email primero</div>';
+    return;
+  }
+  const {error}=await supa.auth.resetPasswordForEmail(email,{
+    redirectTo:'https://inventario-rapido-chile.vercel.app'
+  });
+  if(error){
+    document.getElementById('login-msg').innerHTML=`<div class="merr">❌ ${error.message}</div>`;
+  } else {
+    document.getElementById('login-msg').innerHTML='<div class="mok">✅ Te enviamos un email para recuperar tu contraseña</div>';
   }
 }
 
