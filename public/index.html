@@ -277,16 +277,16 @@ async function buscarCodigo(){
   document.getElementById('b-results').innerHTML='<div class="estado"><div class="ico">⏳</div><p>Buscando...</p></div>';
   document.getElementById('b-count').innerHTML='';
   try{
-    const r1=await fetch(`${SB}/rest/v1/barcodes?barcode=eq.${encodeURIComponent(cod)}&select=product_id`,{headers:H});
+    const r1=await fetch(`${SB}/rest/v1/barcodes?gtin=eq.${encodeURIComponent(cod)}&select=product_id`,{headers:H});
     const bcs=await r1.json();
     if(!bcs.length){noResultado(cod);setBtn('b-txt',false,'Buscar');return;}
     const q=bcs.map(b=>`id.eq.${b.product_id}`).join(',');
     const r2=await fetch(`${SB}/rest/v1/products?or=(${q})&select=*`,{headers:H});
     const prods=await r2.json();
     const full=await Promise.all(prods.map(async p=>{
-      const r=await fetch(`${SB}/rest/v1/barcodes?product_id=eq.${p.id}&select=barcode`,{headers:H});
+      const r=await fetch(`${SB}/rest/v1/barcodes?product_id=eq.${p.id}&select=gtin`,{headers:H});
       const bc=await r.json();
-      return{...p,barcodes:bc.map(b=>b.barcode)};
+      return{...p,barcodes:bc.map(b=>b.gtin)};
     }));
     ultimoResultado=full; mostrar(full);
   }catch(e){
@@ -306,9 +306,9 @@ async function buscarNombre(){
     const r=await fetch(`${SB}/rest/v1/products?normalized_name=ilike.*${encodeURIComponent(nombre)}*&limit=20&select=*`,{headers:H});
     const prods=await r.json();
     const full=await Promise.all(prods.map(async p=>{
-      const r2=await fetch(`${SB}/rest/v1/barcodes?product_id=eq.${p.id}&select=barcode`,{headers:H});
+      const r2=await fetch(`${SB}/rest/v1/barcodes?product_id=eq.${p.id}&select=gtin`,{headers:H});
       const bc=await r2.json();
-      return{...p,barcodes:bc.map(b=>b.barcode)};
+      return{...p,barcodes:bc.map(b=>b.gtin)};
     }));
     ultimoResultado=full; mostrar(full);
   }catch(e){
@@ -494,7 +494,7 @@ async function guardar(){
   setBtn('g-txt',true,'Guardando...');
   document.getElementById('a-msg').innerHTML='';
   try{
-    const chk=await fetch(`${SB}/rest/v1/barcodes?barcode=eq.${encodeURIComponent(barcode)}&select=id`,{headers:H});
+    const chk=await fetch(`${SB}/rest/v1/barcodes?gtin=eq.${encodeURIComponent(barcode)}&select=id`,{headers:H});
     const ex=await chk.json();
     if(ex.length){
       document.getElementById('a-msg').innerHTML='<div class="merr">⚠️ Ese código de barra ya existe en la base de datos.</div>';
@@ -507,7 +507,7 @@ async function guardar(){
     });
     if(!pr.ok) throw new Error((await pr.json()).message||'Error al guardar');
     const [prod]=await pr.json();
-    await fetch(`${SB}/rest/v1/barcodes`,{method:'POST',headers:H,body:JSON.stringify({barcode,product_id:prod.id})});
+    await fetch(`${SB}/rest/v1/barcodes`,{method:'POST',headers:H,body:JSON.stringify({gtin:barcode,product_id:prod.id})});
     document.getElementById('a-msg').innerHTML='<div class="mok">✅ Producto guardado correctamente</div>';
     limpiar();
     const r=await fetch(`${SB}/rest/v1/products?select=id`,{headers:{...H,'Prefer':'count=exact','Range':'0-0'}});
