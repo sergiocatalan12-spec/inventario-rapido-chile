@@ -405,7 +405,7 @@ async function guardar(){
     }
     const pr=await fetch(`${SB}/rest/v1/products`,{
       method:'POST',headers:{...H,'Prefer':'return=representation'},
-      body:JSON.stringify({normalized_name:nombre,format:document.getElementById('a-format').value.trim()||null,unit:document.getElementById('a-unit').value,status:'pendiente'})
+      body:JSON.stringify({normalized_name:nombre,format:document.getElementById('a-format').value.trim()||null,unit:document.getElementById('a-unit').value,status:'pending'})
     });
     if(!pr.ok) throw new Error((await pr.json()).message);
     const [prod]=await pr.json();
