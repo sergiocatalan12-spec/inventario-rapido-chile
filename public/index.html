@@ -207,10 +207,10 @@ input.obligatorio { border-color:var(--rojo) !important; }
       <label class="flabel">Unidad de medida</label>
       <select id="a-unit" style="margin-bottom:16px;">
         <option value="unidad">Unidad</option>
-        <option value="kg">Kilogramo (kg)</option>
-        <option value="g">Gramo (g)</option>
-        <option value="l">Litro (L)</option>
-        <option value="ml">Mililitro (ml)</option>
+        <option value="kilogramo">Kilogramo (kg)</option>
+        <option value="gramo">Gramo (g)</option>
+        <option value="litro">Litro (L)</option>
+        <option value="mililitro">Mililitro (ml)</option>
         <option value="caja">Caja</option>
         <option value="pack">Pack</option>
         <option value="bolsa">Bolsa</option>
@@ -390,7 +390,9 @@ async function analizarIA(b64){
     if(info.marca) document.getElementById('a-marca').value=info.marca;
     if(info.categoria) document.getElementById('a-cat').value=info.categoria;
     if(info.formato) document.getElementById('a-format').value=info.formato;
-    if(info.unidad) document.getElementById('a-unit').value=info.unidad;
+    // Map IA unit values to Supabase enum
+    const unitMap={'unidad':'unidad','kg':'kilogramo','g':'gramo','l':'litro','ml':'mililitro','caja':'caja','pack':'pack','bolsa':'bolsa','kilogramo':'kilogramo','gramo':'gramo','litro':'litro','mililitro':'mililitro'};
+    if(info.unidad) document.getElementById('a-unit').value=unitMap[info.unidad]||'unidad';
     document.getElementById('ia-txt').textContent=`${info.nombre||''} · ${info.marca||''} · ${info.formato||''}`;
     document.getElementById('ia-ok').style.display='block';
   }catch(e){
