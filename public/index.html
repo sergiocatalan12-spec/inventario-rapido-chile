@@ -418,18 +418,12 @@ async function buscarCodigo(){
   document.getElementById('b-results').innerHTML='<div class="estado"><div class="ico">⏳</div><p>Buscando...</p></div>';
   document.getElementById('b-count').innerHTML='';
   try{
-    const r1=await fetch(`${SB_URL}/rest/v1/barcodes?gtin=eq.${encodeURIComponent(cod)}&select=product_id`,{headers:H});
-    const bcs=await r1.json();
-    if(!bcs.length){noResultado(cod);setBtn('b-txt',false,'Buscar');return;}
-    const q=bcs.map(b=>`id.eq.${b.product_id}`).join(',');
-    const r2=await fetch(`${SB_URL}/rest/v1/products?or=(${q})&select=*`,{headers:H});
-    const prods=await r2.json();
-    const full=await Promise.all(prods.map(async p=>{
-      const r=await fetch(`${SB_URL}/rest/v1/barcodes?product_id=eq.${p.id}&select=gtin`,{headers:H});
-      const bc=await r.json();
-      return{...p,barcodes:bc.map(b=>b.gtin)};
-    }));
-    ultimoResultado=full; mostrar(full);
+    // Optimizado: una sola consulta con join
+    const r=await fetch(`${SB_URL}/rest/v1/barcodes?gtin=eq.${encodeURIComponent(cod)}&select=gtin,product:products(id,normalized_name,format,unit,status,image_url)`,{headers:H});
+    const bcs=await r.json();
+    if(!bcs.length||!bcs[0].product){noResultado(cod);setBtn('b-txt',false,'Buscar');return;}
+    const prods=bcs.map(b=>({...b.product,barcodes:[b.gtin]}));
+    ultimoResultado=prods; mostrar(prods);
   }catch(e){
     document.getElementById('b-err').innerHTML=`<div class="merr">❌ Error: ${e.message}</div>`;
     document.getElementById('b-results').innerHTML='';
@@ -440,17 +434,16 @@ async function buscarCodigo(){
 async function buscarNombre(){
   const nombre=document.getElementById('b-input').value.trim();
   if(!nombre){document.getElementById('b-input').focus();return;}
+  // Cambiar inputmode para permitir letras
+  document.getElementById('b-input').removeAttribute('inputmode');
   setBtn('b-txt',true,'Buscando...');
   document.getElementById('b-results').innerHTML='<div class="estado"><div class="ico">⏳</div><p>Buscando...</p></div>';
   document.getElementById('b-count').innerHTML='';
   try{
-    const r=await fetch(`${SB_URL}/rest/v1/products?normalized_name=ilike.*${encodeURIComponent(nombre)}*&limit=20&select=*`,{headers:H});
+    // Optimizado: una sola consulta con barcodes incluidos
+    const r=await fetch(`${SB_URL}/rest/v1/products?normalized_name=ilike.*${encodeURIComponent(nombre)}*&limit=20&select=id,normalized_name,format,unit,status,image_url,barcodes(gtin)`,{headers:H});
     const prods=await r.json();
-    const full=await Promise.all(prods.map(async p=>{
-      const r2=await fetch(`${SB_URL}/rest/v1/barcodes?product_id=eq.${p.id}&select=gtin`,{headers:H});
-      const bc=await r2.json();
-      return{...p,barcodes:bc.map(b=>b.gtin)};
-    }));
+    const full=prods.map(p=>({...p,barcodes:(p.barcodes||[]).map(b=>b.gtin)}));
     ultimoResultado=full; mostrar(full);
   }catch(e){document.getElementById('b-err').innerHTML=`<div class="merr">❌ Error: ${e.message}</div>`;}
   setBtn('b-txt',false,'Buscar');
@@ -490,7 +483,12 @@ function irAgregar(){
 function agregarFotos(event){
   Array.from(event.target.files).forEach(file=>{
     const reader=new FileReader();
-    reader.onload=e=>{fotos.push(e.target.result);renderFotos();if(fotos.length===1)analizarIA(e.target.result);};
+    reader.onload=e=>{
+      fotos.push(e.target.result);
+      renderFotos();
+      // Analizar siempre la última foto agregada
+      analizarIA(e.target.result);
+    };
     reader.readAsDataURL(file);
   });
   event.target.value='';
@@ -498,7 +496,11 @@ function agregarFotos(event){
 
 function renderFotos(){
   document.getElementById('fgrid').innerHTML=fotos.map((f,i)=>`
-    <div class="fthumb"><img src="${f}"><button class="fdel" onclick="delFoto(${i})">✕</button></div>`).join('')+
+    <div class="fthumb">
+      <img src="${f}">
+      <button class="fdel" onclick="delFoto(${i})">✕</button>
+      <button onclick="analizarIA('${f}')" style="position:absolute;bottom:3px;left:3px;background:rgba(102,126,234,0.9);color:white;border:none;border-radius:4px;font-size:9px;padding:2px 4px;cursor:pointer;">🤖</button>
+    </div>`).join('')+
     `<div class="fadd"><input type="file" id="finput" accept="image/*" multiple onchange="agregarFotos(event)"><span>📷</span><span class="s">Agregar</span></div>`;
 }
 
