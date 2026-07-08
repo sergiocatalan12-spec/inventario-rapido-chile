@@ -405,42 +405,43 @@ async function leerCodigoFoto(event){
   if(!file) return;
   event.target.value='';
   
-  const box=document.getElementById('barcode-box');
   const msg=document.getElementById('bc-msg');
   msg.style.display='block';
-  msg.style.color=getComputedStyle(document.documentElement).getPropertyValue('--suave');
-  msg.textContent='🔍 Leyendo código de barra...';
+  msg.style.color='var(--suave)';
+  msg.textContent='🤖 Claude está leyendo el código de barra...';
 
   try{
-    // Load ZXing if needed
-    if(!window.ZXing){
-      await new Promise((res,rej)=>{
-        const s=document.createElement('script');
-        s.src='https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js';
-        s.onload=res; s.onerror=rej;
-        document.head.appendChild(s);
-      });
-    }
-    
-    const reader=new ZXing.BrowserMultiFormatReader();
-    const url=URL.createObjectURL(file);
-    
-    try{
-      const result=await reader.decodeFromImageUrl(url);
-      URL.revokeObjectURL(url);
-      const codigo=result.getText();
-      document.getElementById('a-barcode').value=codigo;
-      marcarBarcodeLeido(codigo);
-      msg.textContent='';
+    const b64=await new Promise((res,rej)=>{
+      const r=new FileReader();
+      r.onload=e=>res(e.target.result);
+      r.onerror=rej;
+      r.readAsDataURL(file);
+    });
+
+    const resp=await fetch('/api/analizar',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        imageBase64:b64.split(',')[1],
+        mediaType:b64.split(';')[0].split(':')[1],
+        modo:'barcode'
+      })
+    });
+
+    if(!resp.ok) throw new Error('Error del servidor');
+    const data=await resp.json();
+
+    if(data.barcode){
+      document.getElementById('a-barcode').value=data.barcode;
+      marcarBarcodeLeido(data.barcode);
       msg.style.display='none';
-    }catch(e){
-      URL.revokeObjectURL(url);
+    } else {
       msg.style.color='#922B21';
-      msg.textContent='⚠️ No se detectó código. Ingrésalo manualmente en el campo de abajo.';
+      msg.textContent='⚠️ No se detectó código. Ingrésalo manualmente abajo.';
     }
   }catch(e){
     msg.style.color='#922B21';
-    msg.textContent='⚠️ Error al cargar el lector. Ingrésalo manualmente.';
+    msg.textContent='⚠️ Error al leer. Ingrésalo manualmente.';
   }
 }
 
