@@ -10,73 +10,69 @@
 :root {
   --rojo: #C0392B; --rojo-oscuro: #96281B; --azul: #2C3E50;
   --gris-claro: #F5F6FA; --gris-borde: #DDE1EA;
-  --texto: #2C3E50; --texto-suave: #7F8C8D;
-  --verde: #27AE60; --amarillo: #F39C12;
+  --texto: #2C3E50; --texto-suave: #7F8C8D; --verde: #27AE60;
 }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--gris-claro); color: var(--texto); min-height: 100vh; }
 
-/* HEADER */
-header { background: var(--rojo); color: white; padding: 14px 16px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); position: sticky; top: 0; z-index: 100; }
+header { background: var(--rojo); color: white; padding: 14px 16px; display: flex; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
 header .logo { font-size: 26px; }
 header h1 { font-size: 17px; font-weight: 700; }
 header p { font-size: 11px; opacity: 0.85; }
 
-/* TABS */
 .tabs { display: flex; background: var(--azul); }
 .tab { flex: 1; padding: 13px 8px; color: rgba(255,255,255,0.6); font-size: 12px; font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; text-align: center; transition: all 0.2s; }
 .tab.active { color: white; border-bottom-color: var(--rojo); }
 
-/* CONTENT */
 .content { padding: 16px; max-width: 600px; margin: 0 auto; }
 .section { display: none; }
 .section.active { display: block; }
 
-/* CARD */
 .card { background: white; border-radius: 14px; padding: 18px; box-shadow: 0 1px 6px rgba(0,0,0,0.08); margin-bottom: 16px; }
 .card h2 { font-size: 15px; font-weight: 700; color: var(--azul); margin-bottom: 14px; }
 
-/* BOTONES */
 .btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 18px; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; width: 100%; margin-bottom: 10px; }
 .btn:active { opacity: 0.75; }
+.btn:last-child { margin-bottom: 0; }
 .btn-rojo { background: var(--rojo); color: white; }
 .btn-azul { background: var(--azul); color: white; }
 .btn-verde { background: var(--verde); color: white; }
 .btn-gris { background: var(--gris-claro); color: var(--texto); border: 2px solid var(--gris-borde); }
-.btn-peligro { background: #FADBD8; color: #922B21; }
-.btn-sm { padding: 10px 14px; font-size: 13px; margin-bottom: 0; }
-.btn-row { display: flex; gap: 8px; margin-top: 10px; }
+.btn-sm { padding: 10px 14px; font-size: 13px; }
+.btn-row { display: flex; gap: 8px; }
 .btn-row .btn { margin-bottom: 0; }
 
-/* INPUT */
 .input-row { display: flex; gap: 8px; margin-bottom: 10px; }
-.input-row input { flex: 1; }
-input, select, textarea {
-  width: 100%; padding: 13px 14px; border: 2px solid var(--gris-borde);
-  border-radius: 10px; font-size: 15px; outline: none;
-  transition: border-color 0.2s; background: white; color: var(--texto);
-  -webkit-appearance: none;
-}
+.input-row input { flex: 1; margin-bottom: 0; }
+input, select { width: 100%; padding: 13px 14px; border: 2px solid var(--gris-borde); border-radius: 10px; font-size: 15px; outline: none; transition: border-color 0.2s; background: white; color: var(--texto); -webkit-appearance: none; appearance: none; margin-bottom: 10px; }
 input:focus, select:focus { border-color: var(--rojo); }
-.form-group { margin-bottom: 14px; }
-.form-group label { display: block; font-size: 12px; font-weight: 700; color: var(--texto-suave); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+.form-group { margin-bottom: 4px; }
+.form-group label { display: block; font-size: 11px; font-weight: 700; color: var(--texto-suave); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+.form-group input, .form-group select { margin-bottom: 0; }
 
-/* FOTO */
-.foto-zona { border: 2px dashed var(--gris-borde); border-radius: 10px; padding: 24px 16px; text-align: center; background: var(--gris-claro); cursor: pointer; position: relative; }
-.foto-zona input[type=file] { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
-.foto-zona .icono { font-size: 36px; margin-bottom: 6px; }
-.foto-zona p { font-size: 13px; color: var(--texto-suave); }
-.fotos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
-.foto-thumb { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; border: 2px solid var(--gris-borde); }
+/* FOTOS */
+.fotos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 6px; }
+.foto-thumb { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; border: 2px solid var(--gris-borde); background: var(--gris-claro); }
 .foto-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.foto-thumb .eliminar-foto { position: absolute; top: 4px; right: 4px; background: rgba(192,57,43,0.9); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-.agregar-foto-btn { aspect-ratio: 1; border-radius: 8px; border: 2px dashed var(--gris-borde); display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--gris-claro); cursor: pointer; font-size: 24px; color: var(--texto-suave); position: relative; }
-.agregar-foto-btn input[type=file] { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+.foto-del { position: absolute; top: 3px; right: 3px; background: rgba(192,57,43,0.9); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.foto-add { aspect-ratio: 1; border-radius: 8px; border: 2px dashed var(--gris-borde); display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--gris-claro); cursor: pointer; font-size: 24px; color: var(--texto-suave); position: relative; gap: 4px; }
+.foto-add span.lbl { font-size: 10px; }
+.foto-add input[type=file] { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+
+/* IA ANALYZING */
+.ia-analizando { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 14px; display: none; }
+.ia-analizando .ia-icon { font-size: 36px; margin-bottom: 8px; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.1);} }
+.ia-analizando p { font-size: 14px; font-weight: 600; }
+.ia-analizando small { font-size: 12px; opacity: 0.8; }
+
+.ia-resultado { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border-radius: 12px; padding: 14px; margin-bottom: 14px; display: none; font-size: 13px; }
+.ia-resultado strong { display: block; margin-bottom: 6px; font-size: 14px; }
 
 /* PRODUCTO CARD */
 .producto-card { background: white; border-radius: 12px; padding: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 10px; display: flex; gap: 12px; align-items: flex-start; animation: fadeIn 0.2s ease; }
-@keyframes fadeIn { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+@keyframes fadeIn { from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);} }
 .producto-img { width: 72px; height: 72px; object-fit: contain; border-radius: 8px; background: var(--gris-claro); flex-shrink: 0; border: 1px solid var(--gris-borde); }
-.producto-placeholder { width: 72px; height: 72px; background: var(--gris-claro); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; border: 1px solid var(--gris-borde); }
+.producto-ph { width: 72px; height: 72px; background: var(--gris-claro); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; border: 1px solid var(--gris-borde); }
 .producto-info { flex: 1; min-width: 0; }
 .producto-nombre { font-size: 14px; font-weight: 700; color: var(--azul); margin-bottom: 3px; line-height: 1.3; }
 .producto-meta { font-size: 12px; color: var(--texto-suave); margin-bottom: 5px; }
@@ -84,35 +80,27 @@ input:focus, select:focus { border-color: var(--rojo); }
 .badge-verde { background: #D5F5E3; color: #1E8449; }
 .badge-amarillo { background: #FEF9E7; color: #9A7D0A; }
 .barcodes { margin-top: 5px; }
-.barcode-tag { display: inline-block; background: var(--azul); color: white; padding: 1px 7px; border-radius: 4px; font-size: 10px; font-family: monospace; margin: 2px 2px 0 0; }
+.bc-tag { display: inline-block; background: var(--azul); color: white; padding: 1px 7px; border-radius: 4px; font-size: 10px; font-family: monospace; margin: 2px 2px 0 0; }
 
-/* ESTADO */
 .estado { text-align: center; padding: 30px 20px; color: var(--texto-suave); }
 .estado .icono { font-size: 44px; margin-bottom: 10px; }
 .estado p { font-size: 14px; line-height: 1.5; margin-bottom: 14px; }
 
-/* MENSAJES */
 .msg-error { background: #FADBD8; color: #922B21; padding: 12px 14px; border-radius: 8px; font-size: 13px; margin-top: 10px; }
 .msg-ok { background: #D5F5E3; color: #1E8449; padding: 12px 14px; border-radius: 8px; font-size: 13px; margin-top: 10px; }
 
-/* STATS */
 .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
 .stat { background: var(--gris-claro); border-radius: 10px; padding: 12px 8px; text-align: center; }
 .stat .num { font-size: 20px; font-weight: 800; color: var(--rojo); }
 .stat .lbl { font-size: 10px; color: var(--texto-suave); margin-top: 2px; }
 
-/* SPINNER */
 .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin { to{transform:rotate(360deg);} }
 
-/* SCANNER MODAL */
 #scanner-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
 #scanner-modal h3 { color: white; font-size: 16px; margin-bottom: 14px; }
-.scanner-wrap { position: relative; width: 100%; max-width: 360px; }
-#scanner-video { width: 100%; border-radius: 12px; display: block; }
-.scanner-overlay { position: absolute; inset: 0; border: 3px solid var(--rojo); border-radius: 12px; pointer-events: none; }
-.scanner-line { position: absolute; top: 50%; left: 10%; right: 10%; height: 2px; background: rgba(192,57,43,0.8); transform: translateY(-50%); }
 #scanner-status { color: rgba(255,255,255,0.75); font-size: 13px; margin-top: 12px; text-align: center; }
+#html5-qr-div { width: 100%; max-width: 360px; border-radius: 12px; overflow: hidden; }
 </style>
 </head>
 <body>
@@ -121,25 +109,22 @@ input:focus, select:focus { border-color: var(--rojo); }
   <div class="logo">🇨🇱</div>
   <div>
     <h1>Inventario Rápido Chile</h1>
-    <p id="header-count">Cargando productos...</p>
+    <p id="header-count">Cargando...</p>
   </div>
 </header>
 
 <div class="tabs">
-  <div class="tab active" onclick="showTab('buscar', this)">🔍 Buscar</div>
-  <div class="tab" onclick="showTab('agregar', this)">➕ Agregar</div>
-  <div class="tab" onclick="showTab('exportar', this)">📊 Exportar</div>
+  <div class="tab active" onclick="showTab('buscar',this)">🔍 Buscar</div>
+  <div class="tab" onclick="showTab('agregar',this)">➕ Agregar</div>
+  <div class="tab" onclick="showTab('exportar',this)">📊 Exportar</div>
 </div>
 
-<!-- SCANNER MODAL -->
+<!-- SCANNER -->
 <div id="scanner-modal">
   <h3>📷 Apunta al código de barra</h3>
-  <div class="scanner-wrap">
-    <video id="scanner-video" autoplay playsinline muted></video>
-    <div class="scanner-overlay"><div class="scanner-line"></div></div>
-  </div>
+  <div id="html5-qr-div"></div>
   <div id="scanner-status">Iniciando cámara...</div>
-  <div style="margin-top:20px; width:100%; max-width:360px;">
+  <div style="margin-top:16px; width:100%; max-width:360px;">
     <button class="btn btn-gris" onclick="cerrarEscaner()">✕ Cancelar</button>
   </div>
 </div>
@@ -150,29 +135,49 @@ input:focus, select:focus { border-color: var(--rojo); }
   <div class="section active" id="tab-buscar">
     <div class="card">
       <div class="input-row">
-        <input type="text" id="barcode-input" placeholder="Código de barra o nombre..." inputmode="numeric" autocomplete="off" onkeydown="if(event.key==='Enter') buscarPorCodigo()">
-        <button class="btn btn-rojo btn-sm" style="width:auto; margin-bottom:0;" onclick="buscarPorCodigo()">
-          <span id="btn-buscar-txt">Buscar</span>
-        </button>
+        <input type="text" id="barcode-input" placeholder="Código o nombre del producto..." inputmode="numeric" autocomplete="off" onkeydown="if(event.key==='Enter') buscarPorCodigo()" style="margin-bottom:0;">
+        <button class="btn btn-rojo btn-sm" style="width:auto; margin-bottom:0;" onclick="buscarPorCodigo()"><span id="btn-buscar-txt">Buscar</span></button>
       </div>
-      <button class="btn btn-azul" onclick="abrirEscaner()">📷 Escanear código de barra</button>
+      <button class="btn btn-azul" onclick="abrirEscaner('buscar')">📷 Escanear código de barra</button>
       <button class="btn btn-gris" style="margin-bottom:0;" onclick="buscarPorNombre()">🔤 Buscar por nombre</button>
       <div id="search-error"></div>
     </div>
-
-    <div id="results-count" style="font-size:12px; color:var(--texto-suave); margin-bottom:8px; padding:0 2px;"></div>
+    <div id="results-count" style="font-size:12px;color:var(--texto-suave);margin-bottom:8px;padding:0 2px;"></div>
     <div id="results-container">
-      <div class="estado">
-        <div class="icono">📦</div>
-        <p>Escanea o escribe un código de barra para buscar un producto</p>
-      </div>
+      <div class="estado"><div class="icono">📦</div><p>Escanea o escribe un código para buscar un producto</p></div>
     </div>
   </div>
 
   <!-- AGREGAR -->
   <div class="section" id="tab-agregar">
     <div class="card">
-      <h2>➕ Agregar producto nuevo</h2>
+      <h2>➕ Agregar producto</h2>
+
+      <!-- FOTOS primero -->
+      <div class="form-group" style="margin-bottom:14px;">
+        <label>📷 Fotos del producto</label>
+        <p style="font-size:12px;color:var(--texto-suave);margin-bottom:8px;">Toma una foto y la IA completará los datos automáticamente</p>
+        <div class="fotos-grid" id="fotos-grid">
+          <div class="foto-add" id="foto-add-btn">
+            <input type="file" id="foto-input" accept="image/*" multiple onchange="agregarFotos(event)">
+            <span>📷</span>
+            <span class="lbl">Agregar foto</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- IA analizando -->
+      <div class="ia-analizando" id="ia-analizando">
+        <div class="ia-icon">🤖</div>
+        <p>Analizando producto con IA...</p>
+        <small>Identificando nombre, marca, categoría y más</small>
+      </div>
+
+      <!-- Resultado IA -->
+      <div class="ia-resultado" id="ia-resultado">
+        <strong>✨ IA detectó este producto:</strong>
+        <div id="ia-texto"></div>
+      </div>
 
       <div class="form-group">
         <label>Nombre del producto *</label>
@@ -180,11 +185,35 @@ input:focus, select:focus { border-color: var(--rojo); }
       </div>
 
       <div class="form-group">
-        <label>Código de barra *</label>
-        <div class="input-row" style="margin-bottom:0;">
-          <input type="text" id="nuevo-barcode" placeholder="7802900001234" inputmode="numeric">
-          <button class="btn btn-azul btn-sm" style="width:auto; margin-bottom:0;" onclick="escanearParaAgregar()">📷</button>
+        <label>Código de barra (opcional)</label>
+        <div class="input-row">
+          <input type="text" id="nuevo-barcode" placeholder="7802900001234" inputmode="numeric" style="margin-bottom:0;">
+          <button class="btn btn-azul btn-sm" style="width:auto;margin-bottom:0;" onclick="abrirEscaner('agregar')">📷</button>
         </div>
+      </div>
+
+      <div class="form-group">
+        <label>Marca</label>
+        <input type="text" id="nuevo-marca" placeholder="Ej: Kraft, Colún, Carozzi">
+      </div>
+
+      <div class="form-group">
+        <label>Categoría</label>
+        <select id="nuevo-categoria">
+          <option value="">Selecciona categoría</option>
+          <option value="lacteos">Lácteos</option>
+          <option value="carnes">Carnes y aves</option>
+          <option value="panaderia">Panadería</option>
+          <option value="frutas_verduras">Frutas y verduras</option>
+          <option value="bebidas">Bebidas</option>
+          <option value="snacks">Snacks y dulces</option>
+          <option value="condimentos">Condimentos y salsas</option>
+          <option value="conservas">Conservas</option>
+          <option value="limpieza">Limpieza del hogar</option>
+          <option value="higiene">Higiene personal</option>
+          <option value="mascotas">Mascotas</option>
+          <option value="otro">Otro</option>
+        </select>
       </div>
 
       <div class="form-group">
@@ -192,33 +221,24 @@ input:focus, select:focus { border-color: var(--rojo); }
         <input type="text" id="nuevo-format" placeholder="Ej: 500g, 1L, 12 unidades">
       </div>
 
-      <div class="form-group">
-        <label>Unidad</label>
+      <div class="form-group" style="margin-bottom:16px;">
+        <label>Unidad de medida</label>
         <select id="nuevo-unit">
           <option value="unidad">Unidad</option>
-          <option value="kg">Kilogramo</option>
-          <option value="g">Gramo</option>
-          <option value="l">Litro</option>
-          <option value="ml">Mililitro</option>
+          <option value="kg">Kilogramo (kg)</option>
+          <option value="g">Gramo (g)</option>
+          <option value="l">Litro (L)</option>
+          <option value="ml">Mililitro (ml)</option>
           <option value="caja">Caja</option>
           <option value="pack">Pack</option>
+          <option value="bolsa">Bolsa</option>
         </select>
-      </div>
-
-      <div class="form-group">
-        <label>Fotos del producto</label>
-        <div class="fotos-grid" id="fotos-grid">
-          <div class="agregar-foto-btn" onclick="document.getElementById('foto-input-nuevo').click()">
-            <input type="file" id="foto-input-nuevo" accept="image/*" multiple onchange="agregarFotos(event)">
-            <span>📷</span>
-            <span style="font-size:11px; margin-top:4px;">Agregar</span>
-          </div>
-        </div>
       </div>
 
       <button class="btn btn-verde" onclick="guardarProducto()">
         <span id="btn-guardar-txt">✓ Guardar producto</span>
       </button>
+      <button class="btn btn-gris" onclick="limpiarFormulario()">🗑️ Limpiar formulario</button>
       <div id="agregar-msg"></div>
     </div>
   </div>
@@ -226,9 +246,9 @@ input:focus, select:focus { border-color: var(--rojo); }
   <!-- EXPORTAR -->
   <div class="section" id="tab-exportar">
     <div class="card" style="text-align:center;">
-      <div style="font-size:48px; margin-bottom:10px;">📊</div>
+      <div style="font-size:48px;margin-bottom:10px;">📊</div>
       <h2 style="margin-bottom:6px;">Exportar a Excel</h2>
-      <p style="font-size:13px; color:var(--texto-suave); margin-bottom:16px;">Todos los productos en formato .xlsx</p>
+      <p style="font-size:13px;color:var(--texto-suave);margin-bottom:16px;">Todos los productos en formato .xlsx</p>
       <div class="stats-grid">
         <div class="stat"><div class="num" id="stat-total">—</div><div class="lbl">Total</div></div>
         <div class="stat"><div class="num" id="stat-aprobados">—</div><div class="lbl">Aprobados</div></div>
@@ -238,9 +258,9 @@ input:focus, select:focus { border-color: var(--rojo); }
       <div id="export-msg"></div>
     </div>
     <div class="card" style="text-align:center;">
-      <div style="font-size:36px; margin-bottom:8px;">🔍</div>
+      <div style="font-size:36px;margin-bottom:8px;">🔍</div>
       <h2 style="margin-bottom:6px;">Exportar búsqueda</h2>
-      <p style="font-size:13px; color:var(--texto-suave); margin-bottom:14px;">Solo los resultados de tu última búsqueda</p>
+      <p style="font-size:13px;color:var(--texto-suave);margin-bottom:14px;">Solo los resultados de tu última búsqueda</p>
       <button class="btn btn-rojo" onclick="exportarBusqueda()">⬇️ Exportar resultados</button>
     </div>
   </div>
@@ -250,14 +270,31 @@ input:focus, select:focus { border-color: var(--rojo); }
 <script>
 const SB_URL = 'https://vqwgxshbxixsbqxrejpi.supabase.co';
 const SB_KEY = 'sb_publishable_7kPWMGQhvmDTmVkcqVVsZw_zRWJDYc3';
+// API key se guarda en memoria de sesión (no en el código)
+function getAIKey() {
+  let key = sessionStorage.getItem('ai_key');
+  if (!key) {
+    key = prompt('Ingresa tu API key de Anthropic para activar el reconocimiento de productos con IA:\n(Empieza con sk-ant-)');
+    if (key && key.startsWith('sk-ant-')) {
+      sessionStorage.setItem('ai_key', key);
+    } else {
+      return null;
+    }
+  }
+  return key;
+}
 const H = { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' };
 
 let ultimoResultado = [];
-let fotosNuevas = []; // array de base64
-let scannerCallback = null;
-let zxingScanner = null;
+let ultimoCodigo = '';
+let fotosNuevas = [];
+let scannerModo = 'buscar';
+let qrScanner = null;
 
-// ── TABS ──────────────────────────────────────────
+// ── INIT ──
+cargarContador();
+
+// ── TABS ──
 function showTab(tab, el) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -266,16 +303,20 @@ function showTab(tab, el) {
   if (tab === 'exportar') cargarEstadisticas();
 }
 
-// ── CARGAR CONTADOR ───────────────────────────────
+// ── CONTADOR ──
 async function cargarContador() {
   try {
-    const r = await fetch(`${SB_URL}/rest/v1/products?select=id&limit=1`, { headers: { ...H, 'Prefer': 'count=exact', 'Range': '0-0' } });
-    const total = r.headers.get('Content-Range')?.split('/')[1];
-    if (total) document.getElementById('header-count').textContent = `${parseInt(total).toLocaleString('es-CL')} productos`;
-  } catch(e) { document.getElementById('header-count').textContent = 'Base de datos nacional'; }
+    const r = await fetch(`${SB_URL}/rest/v1/products?select=id`, {
+      headers: { ...H, 'Prefer': 'count=exact', 'Range': '0-0' }
+    });
+    const ct = r.headers.get('Content-Range')?.split('/')[1];
+    document.getElementById('header-count').textContent = ct ? `${parseInt(ct).toLocaleString('es-CL')} productos` : 'Base de datos nacional';
+  } catch(e) {
+    document.getElementById('header-count').textContent = 'Base de datos nacional';
+  }
 }
 
-// ── BUSCAR ────────────────────────────────────────
+// ── BUSCAR ──
 async function buscarPorCodigo() {
   const codigo = document.getElementById('barcode-input').value.trim();
   if (!codigo) return;
@@ -286,15 +327,10 @@ async function buscarPorCodigo() {
 
   try {
     const r1 = await fetch(`${SB_URL}/rest/v1/barcodes?barcode=eq.${encodeURIComponent(codigo)}&select=product_id`, { headers: H });
-    const barcodes = await r1.json();
+    const bcs = await r1.json();
+    if (!bcs.length) { sinResultados(codigo); setBtn('btn-buscar-txt', false, 'Buscar'); return; }
 
-    if (!barcodes.length) {
-      sinResultados(codigo);
-      setBtn('btn-buscar-txt', false, 'Buscar');
-      return;
-    }
-
-    const idsQ = barcodes.map(b => `id.eq.${b.product_id}`).join(',');
+    const idsQ = bcs.map(b => `id.eq.${b.product_id}`).join(',');
     const r2 = await fetch(`${SB_URL}/rest/v1/products?or=(${idsQ})&select=*`, { headers: H });
     const products = await r2.json();
 
@@ -303,11 +339,10 @@ async function buscarPorCodigo() {
       const bc = await r.json();
       return { ...p, barcodes: bc.map(b => b.barcode) };
     }));
-
     ultimoResultado = conBC;
     mostrarProductos(conBC);
   } catch(e) {
-    document.getElementById('search-error').innerHTML = `<div class="msg-error">❌ Error de conexión: ${e.message}</div>`;
+    document.getElementById('search-error').innerHTML = `<div class="msg-error">❌ Error: ${e.message}</div>`;
     document.getElementById('results-container').innerHTML = '';
   }
   setBtn('btn-buscar-txt', false, 'Buscar');
@@ -319,7 +354,6 @@ async function buscarPorNombre() {
   setBtn('btn-buscar-txt', true, 'Buscando...');
   document.getElementById('results-container').innerHTML = '<div class="estado"><div class="icono">⏳</div><p>Buscando...</p></div>';
   document.getElementById('results-count').innerHTML = '';
-
   try {
     const r = await fetch(`${SB_URL}/rest/v1/products?normalized_name=ilike.*${encodeURIComponent(nombre)}*&limit=20&select=*`, { headers: H });
     const products = await r.json();
@@ -340,35 +374,32 @@ function mostrarProductos(products) {
   if (!products.length) { sinResultados(''); return; }
   document.getElementById('results-count').innerHTML = `${products.length} producto(s) encontrado(s)`;
   document.getElementById('results-container').innerHTML = products.map(p => {
-    const img = p.image_url
-      ? `<img src="${p.image_url}" class="producto-img" onerror="this.style.display='none'">`
-      : `<div class="producto-placeholder">📦</div>`;
+    const img = p.image_url ? `<img src="${p.image_url}" class="producto-img" onerror="this.style.display='none'">` : `<div class="producto-ph">📦</div>`;
     const badge = p.status === 'aprobado' ? 'badge-verde' : 'badge-amarillo';
-    const bcs = (p.barcodes||[]).map(b => `<span class="barcode-tag">${b}</span>`).join('');
+    const bcs = (p.barcodes||[]).map(b => `<span class="bc-tag">${b}</span>`).join('');
     return `<div class="producto-card">${img}<div class="producto-info"><div class="producto-nombre">${p.normalized_name||'Sin nombre'}</div><div class="producto-meta">${[p.format,p.unit].filter(Boolean).join(' · ')}</div><span class="badge ${badge}">${p.status||'pendiente'}</span><div class="barcodes">${bcs}</div></div></div>`;
   }).join('');
 }
 
 function sinResultados(codigo) {
+  ultimoCodigo = codigo || '';
   document.getElementById('results-count').innerHTML = '';
   document.getElementById('results-container').innerHTML = `
     <div class="estado">
       <div class="icono">🔍</div>
       <p>No se encontró ningún producto${codigo ? ` con el código <strong>${codigo}</strong>` : ''}.</p>
-      <button class="btn btn-verde" onclick="irAgregar('${codigo}')">➕ Agregar este producto</button>
+      <button class="btn btn-verde" style="max-width:300px;margin:0 auto;" onclick="irAgregar()">➕ Agregar este producto</button>
     </div>`;
 }
 
-function irAgregar(codigo) {
-  // Ir a pestaña agregar y pre-llenar el código
+function irAgregar() {
   document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===1));
   document.querySelectorAll('.section').forEach((s,i) => s.classList.toggle('active', i===1));
-  if (codigo) document.getElementById('nuevo-barcode').value = codigo;
-  document.getElementById('nuevo-nombre').focus();
+  if (ultimoCodigo) document.getElementById('nuevo-barcode').value = ultimoCodigo;
   window.scrollTo(0,0);
 }
 
-// ── FOTOS ─────────────────────────────────────────
+// ── FOTOS + IA ──
 function agregarFotos(event) {
   const files = Array.from(event.target.files);
   files.forEach(file => {
@@ -376,6 +407,8 @@ function agregarFotos(event) {
     reader.onload = e => {
       fotosNuevas.push(e.target.result);
       renderFotos();
+      // Analizar con IA la primera foto
+      if (fotosNuevas.length === 1) analizarConIA(e.target.result);
     };
     reader.readAsDataURL(file);
   });
@@ -387,13 +420,13 @@ function renderFotos() {
   const thumbs = fotosNuevas.map((foto, i) => `
     <div class="foto-thumb">
       <img src="${foto}">
-      <button class="eliminar-foto" onclick="eliminarFoto(${i})">✕</button>
+      <button class="foto-del" onclick="eliminarFoto(${i})">✕</button>
     </div>`).join('');
   grid.innerHTML = thumbs + `
-    <div class="agregar-foto-btn" onclick="document.getElementById('foto-input-nuevo').click()">
-      <input type="file" id="foto-input-nuevo" accept="image/*" multiple onchange="agregarFotos(event)">
+    <div class="foto-add">
+      <input type="file" id="foto-input" accept="image/*" multiple onchange="agregarFotos(event)">
       <span>📷</span>
-      <span style="font-size:11px; margin-top:4px;">Agregar</span>
+      <span class="lbl">Agregar</span>
     </div>`;
 }
 
@@ -402,15 +435,92 @@ function eliminarFoto(i) {
   renderFotos();
 }
 
-// ── GUARDAR PRODUCTO ──────────────────────────────
+async function analizarConIA(base64img) {
+  document.getElementById('ia-analizando').style.display = 'block';
+  document.getElementById('ia-resultado').style.display = 'none';
+
+  try {
+    const AI_KEY = getAIKey();
+    if (!AI_KEY) {
+      document.getElementById('ia-analizando').style.display = 'none';
+      document.getElementById('ia-resultado').style.display = 'block';
+      document.getElementById('ia-resultado').style.background = 'linear-gradient(135deg, #f39c12, #e67e22)';
+      document.getElementById('ia-texto').textContent = 'API key no ingresada. Completa los datos manualmente.';
+      return;
+    }
+    const base64data = base64img.split(',')[1];
+    const mediaType = base64img.split(';')[0].split(':')[1];
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': getAIKey(),
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 500,
+        messages: [{
+          role: 'user',
+          content: [
+            {
+              type: 'image',
+              source: { type: 'base64', media_type: mediaType, data: base64data }
+            },
+            {
+              type: 'text',
+              text: `Analiza esta imagen de un producto de supermercado chileno. Responde SOLO en formato JSON sin markdown, con estos campos:
+{
+  "nombre": "nombre completo del producto",
+  "marca": "marca del producto",
+  "categoria": "una de: lacteos, carnes, panaderia, frutas_verduras, bebidas, snacks, condimentos, conservas, limpieza, higiene, mascotas, otro",
+  "formato": "tamaño o contenido (ej: 500g, 1L)",
+  "unidad": "una de: unidad, kg, g, l, ml, caja, pack, bolsa",
+  "descripcion": "descripción breve en español"
+}`
+            }
+          ]
+        }]
+      })
+    });
+
+    const data = await response.json();
+    const texto = data.content?.[0]?.text || '';
+
+    let info;
+    try {
+      info = JSON.parse(texto.replace(/```json|```/g, '').trim());
+    } catch(e) {
+      throw new Error('No se pudo interpretar la respuesta de la IA');
+    }
+
+    // Llenar formulario automáticamente
+    if (info.nombre) document.getElementById('nuevo-nombre').value = info.nombre;
+    if (info.marca) document.getElementById('nuevo-marca').value = info.marca;
+    if (info.categoria) document.getElementById('nuevo-categoria').value = info.categoria;
+    if (info.formato) document.getElementById('nuevo-format').value = info.formato;
+    if (info.unidad) document.getElementById('nuevo-unit').value = info.unidad;
+
+    // Mostrar resultado
+    document.getElementById('ia-texto').textContent = `${info.nombre} • ${info.marca} • ${info.formato}`;
+    document.getElementById('ia-resultado').style.display = 'block';
+
+  } catch(e) {
+    document.getElementById('ia-texto').textContent = 'No se pudo analizar. Completa los datos manualmente.';
+    document.getElementById('ia-resultado').style.display = 'block';
+    document.getElementById('ia-resultado').style.background = 'linear-gradient(135deg, #f39c12, #e67e22)';
+  }
+
+  document.getElementById('ia-analizando').style.display = 'none';
+}
+
+// ── GUARDAR ──
 async function guardarProducto() {
   const nombre = document.getElementById('nuevo-nombre').value.trim();
-  const barcode = document.getElementById('nuevo-barcode').value.trim();
-  const format = document.getElementById('nuevo-format').value.trim();
-  const unit = document.getElementById('nuevo-unit').value;
-
-  if (!nombre || !barcode) {
-    document.getElementById('agregar-msg').innerHTML = '<div class="msg-error">❌ Nombre y código de barra son obligatorios.</div>';
+  if (!nombre) {
+    document.getElementById('agregar-msg').innerHTML = '<div class="msg-error">❌ El nombre del producto es obligatorio.</div>';
     return;
   }
 
@@ -418,31 +528,45 @@ async function guardarProducto() {
   document.getElementById('agregar-msg').innerHTML = '';
 
   try {
-    const chk = await fetch(`${SB_URL}/rest/v1/barcodes?barcode=eq.${encodeURIComponent(barcode)}&select=id`, { headers: H });
-    const existe = await chk.json();
-    if (existe.length) {
-      document.getElementById('agregar-msg').innerHTML = '<div class="msg-error">⚠️ Ese código de barra ya existe.</div>';
-      setBtn('btn-guardar-txt', false, '✓ Guardar producto');
-      return;
+    const barcode = document.getElementById('nuevo-barcode').value.trim();
+
+    // Verificar si el barcode ya existe (solo si se ingresó uno)
+    if (barcode) {
+      const chk = await fetch(`${SB_URL}/rest/v1/barcodes?barcode=eq.${encodeURIComponent(barcode)}&select=id`, { headers: H });
+      const existe = await chk.json();
+      if (existe.length) {
+        document.getElementById('agregar-msg').innerHTML = '<div class="msg-error">⚠️ Ese código de barra ya existe.</div>';
+        setBtn('btn-guardar-txt', false, '✓ Guardar producto');
+        return;
+      }
     }
+
+    const productData = {
+      normalized_name: nombre,
+      format: document.getElementById('nuevo-format').value.trim() || null,
+      unit: document.getElementById('nuevo-unit').value,
+      status: 'pendiente'
+    };
 
     const prodRes = await fetch(`${SB_URL}/rest/v1/products`, {
       method: 'POST',
       headers: { ...H, 'Prefer': 'return=representation' },
-      body: JSON.stringify({ normalized_name: nombre, format: format||null, unit, status: 'pendiente' })
+      body: JSON.stringify(productData)
     });
-    if (!prodRes.ok) throw new Error((await prodRes.json()).message);
+    if (!prodRes.ok) throw new Error((await prodRes.json()).message || 'Error al guardar');
     const [prod] = await prodRes.json();
 
-    await fetch(`${SB_URL}/rest/v1/barcodes`, { method: 'POST', headers: H, body: JSON.stringify({ barcode, product_id: prod.id }) });
+    // Guardar barcode si se ingresó
+    if (barcode) {
+      await fetch(`${SB_URL}/rest/v1/barcodes`, {
+        method: 'POST', headers: H,
+        body: JSON.stringify({ barcode, product_id: prod.id })
+      });
+    }
 
     document.getElementById('agregar-msg').innerHTML = '<div class="msg-ok">✅ Producto guardado correctamente</div>';
-    // Limpiar
-    document.getElementById('nuevo-nombre').value = '';
-    document.getElementById('nuevo-barcode').value = '';
-    document.getElementById('nuevo-format').value = '';
-    fotosNuevas = [];
-    renderFotos();
+    limpiarFormulario();
+    cargarContador();
 
   } catch(e) {
     document.getElementById('agregar-msg').innerHTML = `<div class="msg-error">❌ Error: ${e.message}</div>`;
@@ -450,7 +574,17 @@ async function guardarProducto() {
   setBtn('btn-guardar-txt', false, '✓ Guardar producto');
 }
 
-// ── ESTADÍSTICAS ──────────────────────────────────
+function limpiarFormulario() {
+  ['nuevo-nombre','nuevo-barcode','nuevo-marca','nuevo-format'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('nuevo-categoria').value = '';
+  document.getElementById('nuevo-unit').value = 'unidad';
+  fotosNuevas = [];
+  renderFotos();
+  document.getElementById('ia-analizando').style.display = 'none';
+  document.getElementById('ia-resultado').style.display = 'none';
+}
+
+// ── ESTADÍSTICAS ──
 async function cargarEstadisticas() {
   const get = async (url) => {
     const r = await fetch(url, { headers: { ...H, 'Prefer': 'count=exact', 'Range': '0-0' } });
@@ -458,9 +592,9 @@ async function cargarEstadisticas() {
   };
   try {
     const [total, aprobados, pendientes] = await Promise.all([
-      get(`${SB_URL}/rest/v1/products?select=id&limit=1`),
-      get(`${SB_URL}/rest/v1/products?status=eq.aprobado&select=id&limit=1`),
-      get(`${SB_URL}/rest/v1/products?status=eq.pendiente&select=id&limit=1`)
+      get(`${SB_URL}/rest/v1/products?select=id`),
+      get(`${SB_URL}/rest/v1/products?status=eq.aprobado&select=id`),
+      get(`${SB_URL}/rest/v1/products?status=eq.pendiente&select=id`)
     ]);
     document.getElementById('stat-total').textContent = total.toLocaleString('es-CL');
     document.getElementById('stat-aprobados').textContent = aprobados.toLocaleString('es-CL');
@@ -468,7 +602,7 @@ async function cargarEstadisticas() {
   } catch(e) {}
 }
 
-// ── EXPORTAR ──────────────────────────────────────
+// ── EXPORTAR ──
 async function exportarExcel() {
   setBtn('btn-export-txt', true, 'Descargando...');
   try {
@@ -481,10 +615,7 @@ async function exportarExcel() {
       if (data.length < 1000) break;
       page++;
     }
-    const ws = XLSX.utils.json_to_sheet(all.map(p => ({
-      'Nombre': p.normalized_name||'', 'Formato': p.format||'', 'Unidad': p.unit||'',
-      'Estado': p.status||'', 'Fecha': p.created_at?.substring(0,10)||''
-    })));
+    const ws = XLSX.utils.json_to_sheet(all.map(p => ({ 'Nombre': p.normalized_name||'', 'Formato': p.format||'', 'Unidad': p.unit||'', 'Estado': p.status||'', 'Fecha': p.created_at?.substring(0,10)||'' })));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Productos');
     XLSX.writeFile(wb, `inventario-chile-${new Date().toISOString().substring(0,10)}.xlsx`);
@@ -497,72 +628,42 @@ async function exportarExcel() {
 
 function exportarBusqueda() {
   if (!ultimoResultado.length) { alert('Primero realiza una búsqueda.'); return; }
-  const ws = XLSX.utils.json_to_sheet(ultimoResultado.map(p => ({
-    'Nombre': p.normalized_name||'', 'Formato': p.format||'', 'Unidad': p.unit||'',
-    'Estado': p.status||'', 'Códigos': (p.barcodes||[]).join(', ')
-  })));
+  const ws = XLSX.utils.json_to_sheet(ultimoResultado.map(p => ({ 'Nombre': p.normalized_name||'', 'Formato': p.format||'', 'Unidad': p.unit||'', 'Estado': p.status||'', 'Códigos': (p.barcodes||[]).join(', ') })));
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Búsqueda');
   XLSX.writeFile(wb, `busqueda-${new Date().toISOString().substring(0,10)}.xlsx`);
 }
 
-// ── ESCÁNER (html5-qrcode - funciona en iPhone/Android/PC) ──
-function escanearParaAgregar() {
-  scannerCallback = (codigo) => { document.getElementById('nuevo-barcode').value = codigo; };
-  abrirEscaner();
-}
-
-function abrirEscaner() {
+// ── ESCÁNER ──
+function abrirEscaner(modo) {
+  scannerModo = modo;
   document.getElementById('scanner-modal').style.display = 'flex';
   document.getElementById('scanner-status').textContent = 'Cargando escáner...';
-
   if (!window.Html5Qrcode) {
     const s = document.createElement('script');
     s.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
     s.onload = iniciarScanner;
-    s.onerror = () => { document.getElementById('scanner-status').textContent = '❌ Error cargando. Verifica conexión.'; };
+    s.onerror = () => { document.getElementById('scanner-status').textContent = '❌ Error cargando escáner.'; };
     document.head.appendChild(s);
-  } else {
-    iniciarScanner();
-  }
+  } else { iniciarScanner(); }
 }
 
 function iniciarScanner() {
   document.getElementById('scanner-status').textContent = 'Iniciando cámara...';
-
-  // html5-qrcode necesita un div propio, lo usamos en lugar del video
-  const video = document.getElementById('scanner-video');
-  video.style.display = 'none';
-
-  // Crear div para el scanner si no existe
-  let scanDiv = document.getElementById('html5-qr-div');
-  if (!scanDiv) {
-    scanDiv = document.createElement('div');
-    scanDiv.id = 'html5-qr-div';
-    scanDiv.style.cssText = 'width:100%; max-width:360px; border-radius:12px; overflow:hidden;';
-    video.parentNode.insertBefore(scanDiv, video);
-  }
-  scanDiv.style.display = 'block';
-
-  zxingScanner = new Html5Qrcode('html5-qr-div');
-
-  zxingScanner.start(
+  qrScanner = new Html5Qrcode('html5-qr-div');
+  qrScanner.start(
     { facingMode: 'environment' },
-    { fps: 10, qrbox: { width: 250, height: 150 }, aspectRatio: 1.5,
+    { fps: 10, qrbox: { width: 250, height: 120 },
       formatsToSupport: [
-        Html5QrcodeSupportedFormats.EAN_13,
-        Html5QrcodeSupportedFormats.EAN_8,
-        Html5QrcodeSupportedFormats.CODE_128,
-        Html5QrcodeSupportedFormats.CODE_39,
-        Html5QrcodeSupportedFormats.UPC_A,
-        Html5QrcodeSupportedFormats.UPC_E
+        Html5QrcodeSupportedFormats.EAN_13, Html5QrcodeSupportedFormats.EAN_8,
+        Html5QrcodeSupportedFormats.CODE_128, Html5QrcodeSupportedFormats.CODE_39,
+        Html5QrcodeSupportedFormats.UPC_A, Html5QrcodeSupportedFormats.UPC_E
       ]
     },
     (codigo) => {
       cerrarEscaner();
-      if (scannerCallback) {
-        scannerCallback(codigo);
-        scannerCallback = null;
+      if (scannerModo === 'agregar') {
+        document.getElementById('nuevo-barcode').value = codigo;
       } else {
         document.getElementById('barcode-input').value = codigo;
         buscarPorCodigo();
@@ -571,30 +672,20 @@ function iniciarScanner() {
     () => {}
   ).then(() => {
     document.getElementById('scanner-status').textContent = 'Apunta al código de barra 📦';
-  }).catch(e => {
-    document.getElementById('scanner-status').textContent = '❌ No se pudo acceder a la cámara. Permite el acceso en Ajustes.';
+  }).catch(() => {
+    document.getElementById('scanner-status').textContent = '❌ Sin acceso a cámara. Permite el acceso en Ajustes.';
   });
 }
 
 function cerrarEscaner() {
   document.getElementById('scanner-modal').style.display = 'none';
-  if (zxingScanner) {
-    zxingScanner.stop().catch(() => {});
-    zxingScanner = null;
-  }
-  const scanDiv = document.getElementById('html5-qr-div');
-  if (scanDiv) scanDiv.style.display = 'none';
-  document.getElementById('scanner-video').style.display = 'block';
+  if (qrScanner) { qrScanner.stop().catch(()=>{}); qrScanner = null; }
 }
 
-// ── HELPERS ───────────────────────────────────────
 function setBtn(id, loading, text) {
   const el = document.getElementById(id);
   if (el) el.innerHTML = loading ? `<span class="spinner"></span> ${text}` : text;
 }
-
-// Init
-cargarContador();
 </script>
 </body>
 </html>
