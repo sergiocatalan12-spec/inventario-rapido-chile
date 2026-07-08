@@ -2,305 +2,117 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Inventario Rápido Chile</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root {
+  --rojo: #C0392B; --rojo-oscuro: #96281B; --azul: #2C3E50;
+  --gris-claro: #F5F6FA; --gris-borde: #DDE1EA;
+  --texto: #2C3E50; --texto-suave: #7F8C8D;
+  --verde: #27AE60; --amarillo: #F39C12;
+}
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--gris-claro); color: var(--texto); min-height: 100vh; }
 
-  :root {
-    --rojo: #C0392B;
-    --rojo-oscuro: #96281B;
-    --azul: #2C3E50;
-    --blanco: #FFFFFF;
-    --gris-claro: #F5F6FA;
-    --gris-borde: #DDE1EA;
-    --texto: #2C3E50;
-    --texto-suave: #7F8C8D;
-    --verde: #27AE60;
-    --amarillo: #F39C12;
-  }
+/* HEADER */
+header { background: var(--rojo); color: white; padding: 14px 16px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); position: sticky; top: 0; z-index: 100; }
+header .logo { font-size: 26px; }
+header h1 { font-size: 17px; font-weight: 700; }
+header p { font-size: 11px; opacity: 0.85; }
 
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: var(--gris-claro);
-    color: var(--texto);
-    min-height: 100vh;
-  }
+/* TABS */
+.tabs { display: flex; background: var(--azul); }
+.tab { flex: 1; padding: 13px 8px; color: rgba(255,255,255,0.6); font-size: 12px; font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; text-align: center; transition: all 0.2s; }
+.tab.active { color: white; border-bottom-color: var(--rojo); }
 
-  /* HEADER */
-  header {
-    background: var(--rojo);
-    color: white;
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  header .logo { font-size: 28px; }
-  header h1 { font-size: 18px; font-weight: 700; line-height: 1.2; }
-  header p { font-size: 12px; opacity: 0.85; }
+/* CONTENT */
+.content { padding: 16px; max-width: 600px; margin: 0 auto; }
+.section { display: none; }
+.section.active { display: block; }
 
-  /* TABS */
-  .tabs {
-    display: flex;
-    background: var(--azul);
-    overflow-x: auto;
-  }
-  .tab {
-    padding: 14px 20px;
-    color: rgba(255,255,255,0.65);
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    border-bottom: 3px solid transparent;
-    white-space: nowrap;
-    transition: all 0.2s;
-    letter-spacing: 0.3px;
-  }
-  .tab:hover { color: white; background: rgba(255,255,255,0.07); }
-  .tab.active { color: white; border-bottom-color: var(--rojo); }
+/* CARD */
+.card { background: white; border-radius: 14px; padding: 18px; box-shadow: 0 1px 6px rgba(0,0,0,0.08); margin-bottom: 16px; }
+.card h2 { font-size: 15px; font-weight: 700; color: var(--azul); margin-bottom: 14px; }
 
-  /* CONTENIDO */
-  .content { padding: 20px; max-width: 900px; margin: 0 auto; }
-  .section { display: none; }
-  .section.active { display: block; }
+/* BOTONES */
+.btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 18px; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; width: 100%; margin-bottom: 10px; }
+.btn:active { opacity: 0.75; }
+.btn-rojo { background: var(--rojo); color: white; }
+.btn-azul { background: var(--azul); color: white; }
+.btn-verde { background: var(--verde); color: white; }
+.btn-gris { background: var(--gris-claro); color: var(--texto); border: 2px solid var(--gris-borde); }
+.btn-peligro { background: #FADBD8; color: #922B21; }
+.btn-sm { padding: 10px 14px; font-size: 13px; margin-bottom: 0; }
+.btn-row { display: flex; gap: 8px; margin-top: 10px; }
+.btn-row .btn { margin-bottom: 0; }
 
-  /* BUSCADOR */
-  .search-box {
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    margin-bottom: 20px;
-  }
-  .search-box h2 { font-size: 16px; margin-bottom: 14px; color: var(--azul); }
+/* INPUT */
+.input-row { display: flex; gap: 8px; margin-bottom: 10px; }
+.input-row input { flex: 1; }
+input, select, textarea {
+  width: 100%; padding: 13px 14px; border: 2px solid var(--gris-borde);
+  border-radius: 10px; font-size: 15px; outline: none;
+  transition: border-color 0.2s; background: white; color: var(--texto);
+  -webkit-appearance: none;
+}
+input:focus, select:focus { border-color: var(--rojo); }
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: 12px; font-weight: 700; color: var(--texto-suave); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
 
-  .input-group {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 12px;
-  }
-  .input-group input {
-    flex: 1;
-    padding: 12px 14px;
-    border: 2px solid var(--gris-borde);
-    border-radius: 8px;
-    font-size: 15px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  .input-group input:focus { border-color: var(--rojo); }
+/* FOTO */
+.foto-zona { border: 2px dashed var(--gris-borde); border-radius: 10px; padding: 24px 16px; text-align: center; background: var(--gris-claro); cursor: pointer; position: relative; }
+.foto-zona input[type=file] { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+.foto-zona .icono { font-size: 36px; margin-bottom: 6px; }
+.foto-zona p { font-size: 13px; color: var(--texto-suave); }
+.fotos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+.foto-thumb { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; border: 2px solid var(--gris-borde); }
+.foto-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.foto-thumb .eliminar-foto { position: absolute; top: 4px; right: 4px; background: rgba(192,57,43,0.9); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.agregar-foto-btn { aspect-ratio: 1; border-radius: 8px; border: 2px dashed var(--gris-borde); display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--gris-claro); cursor: pointer; font-size: 24px; color: var(--texto-suave); position: relative; }
+.agregar-foto-btn input[type=file] { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
 
-  .btn {
-    padding: 12px 20px;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .btn-primary { background: var(--rojo); color: white; }
-  .btn-primary:hover { background: var(--rojo-oscuro); }
-  .btn-secondary { background: var(--gris-claro); color: var(--texto); border: 2px solid var(--gris-borde); }
-  .btn-secondary:hover { background: var(--gris-borde); }
-  .btn-verde { background: var(--verde); color: white; }
-  .btn-verde:hover { background: #219150; }
-  .btn-full { width: 100%; justify-content: center; }
+/* PRODUCTO CARD */
+.producto-card { background: white; border-radius: 12px; padding: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 10px; display: flex; gap: 12px; align-items: flex-start; animation: fadeIn 0.2s ease; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+.producto-img { width: 72px; height: 72px; object-fit: contain; border-radius: 8px; background: var(--gris-claro); flex-shrink: 0; border: 1px solid var(--gris-borde); }
+.producto-placeholder { width: 72px; height: 72px; background: var(--gris-claro); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; border: 1px solid var(--gris-borde); }
+.producto-info { flex: 1; min-width: 0; }
+.producto-nombre { font-size: 14px; font-weight: 700; color: var(--azul); margin-bottom: 3px; line-height: 1.3; }
+.producto-meta { font-size: 12px; color: var(--texto-suave); margin-bottom: 5px; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+.badge-verde { background: #D5F5E3; color: #1E8449; }
+.badge-amarillo { background: #FEF9E7; color: #9A7D0A; }
+.barcodes { margin-top: 5px; }
+.barcode-tag { display: inline-block; background: var(--azul); color: white; padding: 1px 7px; border-radius: 4px; font-size: 10px; font-family: monospace; margin: 2px 2px 0 0; }
 
-  /* PRODUCTO CARD */
-  .product-card {
-    background: white;
-    border-radius: 12px;
-    padding: 16px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    margin-bottom: 12px;
-    display: flex;
-    gap: 14px;
-    align-items: flex-start;
-    animation: fadeIn 0.25s ease;
-  }
-  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+/* ESTADO */
+.estado { text-align: center; padding: 30px 20px; color: var(--texto-suave); }
+.estado .icono { font-size: 44px; margin-bottom: 10px; }
+.estado p { font-size: 14px; line-height: 1.5; margin-bottom: 14px; }
 
-  .product-img {
-    width: 80px;
-    height: 80px;
-    object-fit: contain;
-    border-radius: 8px;
-    background: var(--gris-claro);
-    flex-shrink: 0;
-    border: 1px solid var(--gris-borde);
-  }
-  .product-img-placeholder {
-    width: 80px;
-    height: 80px;
-    background: var(--gris-claro);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-    flex-shrink: 0;
-    border: 1px solid var(--gris-borde);
-  }
-  .product-info { flex: 1; min-width: 0; }
-  .product-name { font-size: 15px; font-weight: 700; color: var(--azul); margin-bottom: 4px; line-height: 1.3; }
-  .product-meta { font-size: 12px; color: var(--texto-suave); margin-bottom: 6px; }
-  .badge {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 600;
-  }
-  .badge-verde { background: #D5F5E3; color: #1E8449; }
-  .badge-rojo { background: #FADBD8; color: #922B21; }
-  .badge-amarillo { background: #FEF9E7; color: #9A7D0A; }
+/* MENSAJES */
+.msg-error { background: #FADBD8; color: #922B21; padding: 12px 14px; border-radius: 8px; font-size: 13px; margin-top: 10px; }
+.msg-ok { background: #D5F5E3; color: #1E8449; padding: 12px 14px; border-radius: 8px; font-size: 13px; margin-top: 10px; }
 
-  /* BARCODES */
-  .barcodes-list { margin-top: 6px; }
-  .barcode-item {
-    display: inline-block;
-    background: var(--azul);
-    color: white;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-family: monospace;
-    margin: 2px 2px 0 0;
-  }
+/* STATS */
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+.stat { background: var(--gris-claro); border-radius: 10px; padding: 12px 8px; text-align: center; }
+.stat .num { font-size: 20px; font-weight: 800; color: var(--rojo); }
+.stat .lbl { font-size: 10px; color: var(--texto-suave); margin-top: 2px; }
 
-  /* ESTADO / MENSAJES */
-  .estado {
-    text-align: center;
-    padding: 30px 20px;
-    color: var(--texto-suave);
-    font-size: 14px;
-  }
-  .estado .icon { font-size: 40px; margin-bottom: 10px; }
-  .error-msg {
-    background: #FADBD8;
-    color: #922B21;
-    padding: 12px 16px;
-    border-radius: 8px;
-    font-size: 13px;
-    margin-top: 10px;
-  }
-  .success-msg {
-    background: #D5F5E3;
-    color: #1E8449;
-    padding: 12px 16px;
-    border-radius: 8px;
-    font-size: 13px;
-    margin-top: 10px;
-  }
+/* SPINNER */
+.spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-  /* FORMULARIO AGREGAR */
-  .form-card {
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    margin-bottom: 16px;
-  }
-  .form-card h2 { font-size: 16px; margin-bottom: 16px; color: var(--azul); }
-  .form-group { margin-bottom: 14px; }
-  .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--texto-suave); margin-bottom: 5px; }
-  .form-group input, .form-group select, .form-group textarea {
-    width: 100%;
-    padding: 11px 13px;
-    border: 2px solid var(--gris-borde);
-    border-radius: 8px;
-    font-size: 14px;
-    outline: none;
-    transition: border-color 0.2s;
-    background: white;
-  }
-  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-    border-color: var(--rojo);
-  }
-
-  /* FOTO UPLOAD */
-  .foto-upload {
-    border: 2px dashed var(--gris-borde);
-    border-radius: 8px;
-    padding: 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    background: var(--gris-claro);
-    position: relative;
-  }
-  .foto-upload:hover { border-color: var(--rojo); background: #FDF0EE; }
-  .foto-upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
-  .foto-upload .icon { font-size: 32px; margin-bottom: 6px; }
-  .foto-upload p { font-size: 13px; color: var(--texto-suave); }
-  .foto-preview {
-    width: 100%;
-    max-height: 200px;
-    object-fit: contain;
-    border-radius: 8px;
-    margin-top: 10px;
-    display: none;
-    border: 1px solid var(--gris-borde);
-  }
-
-  /* EXPORTAR */
-  .export-card {
-    background: white;
-    border-radius: 12px;
-    padding: 24px 20px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    margin-bottom: 16px;
-    text-align: center;
-  }
-  .export-card .icon { font-size: 48px; margin-bottom: 12px; }
-  .export-card h3 { font-size: 16px; font-weight: 700; color: var(--azul); margin-bottom: 6px; }
-  .export-card p { font-size: 13px; color: var(--texto-suave); margin-bottom: 16px; }
-
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-  .stat-box {
-    background: var(--gris-claro);
-    border-radius: 10px;
-    padding: 14px 10px;
-    text-align: center;
-  }
-  .stat-box .num { font-size: 22px; font-weight: 800; color: var(--rojo); }
-  .stat-box .label { font-size: 11px; color: var(--texto-suave); margin-top: 2px; }
-
-  /* LOADING SPINNER */
-  .spinner {
-    display: inline-block;
-    width: 18px;
-    height: 18px;
-    border: 2px solid rgba(255,255,255,0.3);
-    border-top-color: white;
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    vertical-align: middle;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* RESULTADOS LIST */
-  #results-count {
-    font-size: 13px;
-    color: var(--texto-suave);
-    margin-bottom: 10px;
-    padding: 0 2px;
-  }
+/* SCANNER MODAL */
+#scanner-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+#scanner-modal h3 { color: white; font-size: 16px; margin-bottom: 14px; }
+.scanner-wrap { position: relative; width: 100%; max-width: 360px; }
+#scanner-video { width: 100%; border-radius: 12px; display: block; }
+.scanner-overlay { position: absolute; inset: 0; border: 3px solid var(--rojo); border-radius: 12px; pointer-events: none; }
+.scanner-line { position: absolute; top: 50%; left: 10%; right: 10%; height: 2px; background: rgba(192,57,43,0.8); transform: translateY(-50%); }
+#scanner-status { color: rgba(255,255,255,0.75); font-size: 13px; margin-top: 12px; text-align: center; }
 </style>
 </head>
 <body>
@@ -309,79 +121,75 @@
   <div class="logo">🇨🇱</div>
   <div>
     <h1>Inventario Rápido Chile</h1>
-    <p>6.267 productos · Base de datos nacional</p>
+    <p id="header-count">Cargando productos...</p>
   </div>
 </header>
 
 <div class="tabs">
-  <div class="tab active" onclick="showTab('buscar')">🔍 Buscar</div>
-  <div class="tab" onclick="showTab('agregar')">➕ Agregar</div>
-  <div class="tab" onclick="showTab('exportar')">📊 Exportar</div>
+  <div class="tab active" onclick="showTab('buscar', this)">🔍 Buscar</div>
+  <div class="tab" onclick="showTab('agregar', this)">➕ Agregar</div>
+  <div class="tab" onclick="showTab('exportar', this)">📊 Exportar</div>
+</div>
+
+<!-- SCANNER MODAL -->
+<div id="scanner-modal">
+  <h3>📷 Apunta al código de barra</h3>
+  <div class="scanner-wrap">
+    <video id="scanner-video" autoplay playsinline muted></video>
+    <div class="scanner-overlay"><div class="scanner-line"></div></div>
+  </div>
+  <div id="scanner-status">Iniciando cámara...</div>
+  <div style="margin-top:20px; width:100%; max-width:360px;">
+    <button class="btn btn-gris" onclick="cerrarEscaner()">✕ Cancelar</button>
+  </div>
 </div>
 
 <div class="content">
 
-  <!-- ===== BUSCAR ===== -->
+  <!-- BUSCAR -->
   <div class="section active" id="tab-buscar">
-    <div class="search-box">
-      <h2>Buscar por código de barra</h2>
-      <div class="input-group">
-        <input type="text" id="barcode-input" placeholder="Escanea o escribe el código..." 
-               inputmode="numeric" autocomplete="off"
-               onkeydown="if(event.key==='Enter') buscarPorCodigo()">
-        <button class="btn btn-primary" onclick="buscarPorCodigo()">
-          <span id="btn-buscar-text">Buscar</span>
+    <div class="card">
+      <div class="input-row">
+        <input type="text" id="barcode-input" placeholder="Código de barra o nombre..." inputmode="numeric" autocomplete="off" onkeydown="if(event.key==='Enter') buscarPorCodigo()">
+        <button class="btn btn-rojo btn-sm" style="width:auto; margin-bottom:0;" onclick="buscarPorCodigo()">
+          <span id="btn-buscar-txt">Buscar</span>
         </button>
       </div>
-      <button class="btn btn-primary" style="width:100%; justify-content:center; background:#2C3E50; margin-bottom:8px;" onclick="abrirEscaner()">
-        📷 Escanear código de barra
-      </button>
-      <button class="btn btn-secondary" style="width:100%; justify-content:center;" onclick="buscarPorNombre()">
-        🔤 Buscar por nombre
-      </button>
+      <button class="btn btn-azul" onclick="abrirEscaner()">📷 Escanear código de barra</button>
+      <button class="btn btn-gris" style="margin-bottom:0;" onclick="buscarPorNombre()">🔤 Buscar por nombre</button>
       <div id="search-error"></div>
     </div>
 
-    <!-- MODAL ESCANER -->
-    <div id="scanner-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:999; flex-direction:column; align-items:center; justify-content:center;">
-      <div style="color:white; font-size:16px; font-weight:700; margin-bottom:16px;">📷 Apunta al código de barra</div>
-      <div style="position:relative; width:100%; max-width:400px;">
-        <video id="scanner-video" style="width:100%; border-radius:12px; display:block;" autoplay playsinline muted></video>
-        <div style="position:absolute; inset:0; border:3px solid #C0392B; border-radius:12px; pointer-events:none;"></div>
-        <div style="position:absolute; top:50%; left:10%; right:10%; height:2px; background:rgba(192,57,43,0.7); transform:translateY(-50%);"></div>
-      </div>
-      <canvas id="scanner-canvas" style="display:none;"></canvas>
-      <div id="scanner-status" style="color:rgba(255,255,255,0.7); font-size:13px; margin-top:12px;">Iniciando cámara...</div>
-      <button class="btn" style="margin-top:20px; background:white; color:#2C3E50; font-weight:700;" onclick="cerrarEscaner()">✕ Cancelar</button>
-    </div>
-
-    <div id="results-count"></div>
+    <div id="results-count" style="font-size:12px; color:var(--texto-suave); margin-bottom:8px; padding:0 2px;"></div>
     <div id="results-container">
       <div class="estado">
-        <div class="icon">📦</div>
-        <p>Ingresa un código de barra para buscar un producto</p>
+        <div class="icono">📦</div>
+        <p>Escanea o escribe un código de barra para buscar un producto</p>
       </div>
     </div>
   </div>
 
-  <!-- ===== AGREGAR ===== -->
+  <!-- AGREGAR -->
   <div class="section" id="tab-agregar">
-    <div class="form-card">
+    <div class="card">
       <h2>➕ Agregar producto nuevo</h2>
 
       <div class="form-group">
         <label>Nombre del producto *</label>
-        <input type="text" id="nuevo-nombre" placeholder="Ej: Leche Entera Colún 1L">
+        <input type="text" id="nuevo-nombre" placeholder="Ej: Mayonesa Kraft 500g">
       </div>
 
       <div class="form-group">
         <label>Código de barra *</label>
-        <input type="text" id="nuevo-barcode" placeholder="Ej: 7802900001234" inputmode="numeric">
+        <div class="input-row" style="margin-bottom:0;">
+          <input type="text" id="nuevo-barcode" placeholder="7802900001234" inputmode="numeric">
+          <button class="btn btn-azul btn-sm" style="width:auto; margin-bottom:0;" onclick="escanearParaAgregar()">📷</button>
+        </div>
       </div>
 
       <div class="form-group">
         <label>Formato / Tamaño</label>
-        <input type="text" id="nuevo-format" placeholder="Ej: 1L, 500g, 12 unidades">
+        <input type="text" id="nuevo-format" placeholder="Ej: 500g, 1L, 12 unidades">
       </div>
 
       <div class="form-group">
@@ -398,532 +206,395 @@
       </div>
 
       <div class="form-group">
-        <label>Foto del producto</label>
-        <div class="foto-upload" id="foto-drop">
-          <input type="file" id="foto-input" accept="image/*" capture="environment" onchange="previewFoto(event)">
-          <div class="icon">📷</div>
-          <p>Toca para tomar foto o seleccionar imagen</p>
-        </div>
-        <div id="foto-preview-container" style="display:none; margin-top:10px;">
-          <img id="foto-preview" class="foto-preview" alt="Vista previa" style="display:block;">
-          <div style="display:flex; gap:8px; margin-top:8px;">
-            <button type="button" class="btn btn-secondary" style="flex:1; justify-content:center;" onclick="cambiarFoto()">
-              📷 Cambiar foto
-            </button>
-            <button type="button" class="btn" style="flex:1; justify-content:center; background:#FADBD8; color:#922B21;" onclick="eliminarFoto()">
-              🗑️ Eliminar foto
-            </button>
+        <label>Fotos del producto</label>
+        <div class="fotos-grid" id="fotos-grid">
+          <div class="agregar-foto-btn" onclick="document.getElementById('foto-input-nuevo').click()">
+            <input type="file" id="foto-input-nuevo" accept="image/*" multiple onchange="agregarFotos(event)">
+            <span>📷</span>
+            <span style="font-size:11px; margin-top:4px;">Agregar</span>
           </div>
         </div>
-        <input type="hidden" id="foto-url" value="">
       </div>
 
-      <button class="btn btn-verde btn-full" onclick="agregarProducto()">
-        <span id="btn-agregar-text">✓ Guardar producto</span>
+      <button class="btn btn-verde" onclick="guardarProducto()">
+        <span id="btn-guardar-txt">✓ Guardar producto</span>
       </button>
       <div id="agregar-msg"></div>
     </div>
   </div>
 
-  <!-- ===== EXPORTAR ===== -->
+  <!-- EXPORTAR -->
   <div class="section" id="tab-exportar">
-    <div class="export-card">
-      <div class="icon">📊</div>
-      <h3>Exportar inventario a Excel</h3>
-      <p>Descarga todos los productos de la base de datos en formato .xlsx compatible con Excel y Google Sheets</p>
-
+    <div class="card" style="text-align:center;">
+      <div style="font-size:48px; margin-bottom:10px;">📊</div>
+      <h2 style="margin-bottom:6px;">Exportar a Excel</h2>
+      <p style="font-size:13px; color:var(--texto-suave); margin-bottom:16px;">Todos los productos en formato .xlsx</p>
       <div class="stats-grid">
-        <div class="stat-box">
-          <div class="num" id="stat-total">—</div>
-          <div class="label">Productos</div>
-        </div>
-        <div class="stat-box">
-          <div class="num" id="stat-aprobados">—</div>
-          <div class="label">Aprobados</div>
-        </div>
-        <div class="stat-box">
-          <div class="num" id="stat-pendientes">—</div>
-          <div class="label">Pendientes</div>
-        </div>
+        <div class="stat"><div class="num" id="stat-total">—</div><div class="lbl">Total</div></div>
+        <div class="stat"><div class="num" id="stat-aprobados">—</div><div class="lbl">Aprobados</div></div>
+        <div class="stat"><div class="num" id="stat-pendientes">—</div><div class="lbl">Pendientes</div></div>
       </div>
-
-      <button class="btn btn-verde btn-full" onclick="exportarExcel()">
-        <span id="btn-export-text">⬇️ Descargar Excel</span>
-      </button>
+      <button class="btn btn-verde" onclick="exportarExcel()"><span id="btn-export-txt">⬇️ Descargar Excel completo</span></button>
       <div id="export-msg"></div>
     </div>
-
-    <div class="export-card">
-      <div class="icon">🔍</div>
-      <h3>Exportar búsqueda actual</h3>
-      <p>Exporta solo los productos que aparecieron en tu última búsqueda</p>
-      <button class="btn btn-primary btn-full" onclick="exportarBusqueda()">
-        ⬇️ Exportar resultados de búsqueda
-      </button>
+    <div class="card" style="text-align:center;">
+      <div style="font-size:36px; margin-bottom:8px;">🔍</div>
+      <h2 style="margin-bottom:6px;">Exportar búsqueda</h2>
+      <p style="font-size:13px; color:var(--texto-suave); margin-bottom:14px;">Solo los resultados de tu última búsqueda</p>
+      <button class="btn btn-rojo" onclick="exportarBusqueda()">⬇️ Exportar resultados</button>
     </div>
   </div>
 
 </div>
 
 <script>
-// ============================================================
-// CONFIGURACIÓN SUPABASE
-// ============================================================
-const SUPABASE_URL = 'https://vqwgxshbxixsbqxrejpi.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_7kPWMGQhvmDTmVkcqVVsZw_zRWJDYc3';
+const SB_URL = 'https://vqwgxshbxixsbqxrejpi.supabase.co';
+const SB_KEY = 'sb_publishable_7kPWMGQhvmDTmVkcqVVsZw_zRWJDYc3';
+const H = { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' };
 
-const headers = {
-  'apikey': SUPABASE_KEY,
-  'Authorization': `Bearer ${SUPABASE_KEY}`,
-  'Content-Type': 'application/json'
-};
-
-// ============================================================
-// ESTADO GLOBAL
-// ============================================================
 let ultimoResultado = [];
-let fotoBase64 = '';
+let fotosNuevas = []; // array de base64
+let scannerCallback = null;
+let zxingScanner = null;
 
-// ============================================================
-// TABS
-// ============================================================
-function showTab(tab) {
+// ── TABS ──────────────────────────────────────────
+function showTab(tab, el) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
   document.getElementById('tab-' + tab).classList.add('active');
-  event.target.classList.add('active');
   if (tab === 'exportar') cargarEstadisticas();
 }
 
-// ============================================================
-// BUSCAR POR CÓDIGO DE BARRA
-// ============================================================
+// ── CARGAR CONTADOR ───────────────────────────────
+async function cargarContador() {
+  try {
+    const r = await fetch(`${SB_URL}/rest/v1/products?select=id&limit=1`, { headers: { ...H, 'Prefer': 'count=exact', 'Range': '0-0' } });
+    const total = r.headers.get('Content-Range')?.split('/')[1];
+    if (total) document.getElementById('header-count').textContent = `${parseInt(total).toLocaleString('es-CL')} productos`;
+  } catch(e) { document.getElementById('header-count').textContent = 'Base de datos nacional'; }
+}
+
+// ── BUSCAR ────────────────────────────────────────
 async function buscarPorCodigo() {
   const codigo = document.getElementById('barcode-input').value.trim();
   if (!codigo) return;
-
-  setBtnLoading('btn-buscar-text', true, 'Buscando...');
+  setBtn('btn-buscar-txt', true, 'Buscando...');
   document.getElementById('search-error').innerHTML = '';
-  document.getElementById('results-container').innerHTML = '<div class="estado"><div class="icon">⏳</div><p>Buscando...</p></div>';
+  document.getElementById('results-container').innerHTML = '<div class="estado"><div class="icono">⏳</div><p>Buscando...</p></div>';
   document.getElementById('results-count').innerHTML = '';
 
   try {
-    // Buscar en tabla barcodes
-    const resBarcodes = await fetch(
-      `${SUPABASE_URL}/rest/v1/barcodes?barcode=eq.${encodeURIComponent(codigo)}&select=product_id`,
-      { headers }
-    );
-    const barcodes = await resBarcodes.json();
+    const r1 = await fetch(`${SB_URL}/rest/v1/barcodes?barcode=eq.${encodeURIComponent(codigo)}&select=product_id`, { headers: H });
+    const barcodes = await r1.json();
 
     if (!barcodes.length) {
-      mostrarSinResultados('No se encontró ningún producto con ese código de barra.');
-      setBtnLoading('btn-buscar-text', false, 'Buscar');
+      sinResultados(codigo);
+      setBtn('btn-buscar-txt', false, 'Buscar');
       return;
     }
 
-    const ids = barcodes.map(b => b.product_id);
-    const idsQuery = ids.map(id => `id.eq.${id}`).join(',');
+    const idsQ = barcodes.map(b => `id.eq.${b.product_id}`).join(',');
+    const r2 = await fetch(`${SB_URL}/rest/v1/products?or=(${idsQ})&select=*`, { headers: H });
+    const products = await r2.json();
 
-    const resProducts = await fetch(
-      `${SUPABASE_URL}/rest/v1/products?or=(${idsQuery})&select=*`,
-      { headers }
-    );
-    const products = await resProducts.json();
-
-    // Para cada producto, buscar sus barcodes
-    const conBarcodes = await Promise.all(products.map(async (p) => {
-      const r = await fetch(
-        `${SUPABASE_URL}/rest/v1/barcodes?product_id=eq.${p.id}&select=barcode`,
-        { headers }
-      );
+    const conBC = await Promise.all(products.map(async p => {
+      const r = await fetch(`${SB_URL}/rest/v1/barcodes?product_id=eq.${p.id}&select=barcode`, { headers: H });
       const bc = await r.json();
       return { ...p, barcodes: bc.map(b => b.barcode) };
     }));
 
-    ultimoResultado = conBarcodes;
-    mostrarProductos(conBarcodes);
-
-  } catch (err) {
-    document.getElementById('search-error').innerHTML = `<div class="error-msg">❌ Error de conexión: ${err.message}</div>`;
+    ultimoResultado = conBC;
+    mostrarProductos(conBC);
+  } catch(e) {
+    document.getElementById('search-error').innerHTML = `<div class="msg-error">❌ Error de conexión: ${e.message}</div>`;
     document.getElementById('results-container').innerHTML = '';
   }
-  setBtnLoading('btn-buscar-text', false, 'Buscar');
+  setBtn('btn-buscar-txt', false, 'Buscar');
 }
 
-// ============================================================
-// BUSCAR POR NOMBRE
-// ============================================================
 async function buscarPorNombre() {
   const nombre = document.getElementById('barcode-input').value.trim();
-  if (!nombre) {
-    document.getElementById('barcode-input').placeholder = 'Escribe el nombre del producto...';
-    document.getElementById('barcode-input').focus();
-    return;
-  }
-
-  setBtnLoading('btn-buscar-text', true, 'Buscando...');
-  document.getElementById('results-container').innerHTML = '<div class="estado"><div class="icon">⏳</div><p>Buscando...</p></div>';
+  if (!nombre) { document.getElementById('barcode-input').focus(); return; }
+  setBtn('btn-buscar-txt', true, 'Buscando...');
+  document.getElementById('results-container').innerHTML = '<div class="estado"><div class="icono">⏳</div><p>Buscando...</p></div>';
   document.getElementById('results-count').innerHTML = '';
 
   try {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/products?normalized_name=ilike.*${encodeURIComponent(nombre)}*&limit=20&select=*`,
-      { headers }
-    );
-    const products = await res.json();
-
-    const conBarcodes = await Promise.all(products.map(async (p) => {
-      const r = await fetch(
-        `${SUPABASE_URL}/rest/v1/barcodes?product_id=eq.${p.id}&select=barcode`,
-        { headers }
-      );
-      const bc = await r.json();
+    const r = await fetch(`${SB_URL}/rest/v1/products?normalized_name=ilike.*${encodeURIComponent(nombre)}*&limit=20&select=*`, { headers: H });
+    const products = await r.json();
+    const conBC = await Promise.all(products.map(async p => {
+      const r2 = await fetch(`${SB_URL}/rest/v1/barcodes?product_id=eq.${p.id}&select=barcode`, { headers: H });
+      const bc = await r2.json();
       return { ...p, barcodes: bc.map(b => b.barcode) };
     }));
-
-    ultimoResultado = conBarcodes;
-    mostrarProductos(conBarcodes);
-
-  } catch (err) {
-    document.getElementById('search-error').innerHTML = `<div class="error-msg">❌ Error: ${err.message}</div>`;
+    ultimoResultado = conBC;
+    mostrarProductos(conBC);
+  } catch(e) {
+    document.getElementById('search-error').innerHTML = `<div class="msg-error">❌ Error: ${e.message}</div>`;
   }
-  setBtnLoading('btn-buscar-text', false, 'Buscar');
+  setBtn('btn-buscar-txt', false, 'Buscar');
 }
 
-// ============================================================
-// MOSTRAR PRODUCTOS
-// ============================================================
 function mostrarProductos(products) {
-  if (!products.length) {
-    mostrarSinResultados('No se encontraron productos.');
-    return;
-  }
-
+  if (!products.length) { sinResultados(''); return; }
   document.getElementById('results-count').innerHTML = `${products.length} producto(s) encontrado(s)`;
-
-  const html = products.map(p => {
-    const nombre = p.normalized_name || 'Sin nombre';
-    const formato = p.format || '';
-    const unidad = p.unit || '';
-    const status = p.status || 'pendiente';
-    const imageUrl = p.image_url || '';
-    const barcodes = p.barcodes || [];
-
-    const badgeClass = status === 'aprobado' ? 'badge-verde' : 
-                       status === 'pendiente' ? 'badge-amarillo' : 'badge-rojo';
-    const badgeLabel = status === 'aprobado' ? '✓ Aprobado' : 
-                       status === 'pendiente' ? '⏳ Pendiente' : status;
-
-    const imgHtml = imageUrl 
-      ? `<img src="${imageUrl}" class="product-img" alt="${nombre}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-         <div class="product-img-placeholder" style="display:none">📦</div>`
-      : `<div class="product-img-placeholder">📦</div>`;
-
-    const barcodesHtml = barcodes.length 
-      ? `<div class="barcodes-list">${barcodes.map(b => `<span class="barcode-item">📊 ${b}</span>`).join('')}</div>`
-      : '';
-
-    return `
-      <div class="product-card">
-        ${imgHtml}
-        <div class="product-info">
-          <div class="product-name">${nombre}</div>
-          <div class="product-meta">${[formato, unidad].filter(Boolean).join(' · ')}</div>
-          <span class="badge ${badgeClass}">${badgeLabel}</span>
-          ${barcodesHtml}
-        </div>
-      </div>
-    `;
+  document.getElementById('results-container').innerHTML = products.map(p => {
+    const img = p.image_url
+      ? `<img src="${p.image_url}" class="producto-img" onerror="this.style.display='none'">`
+      : `<div class="producto-placeholder">📦</div>`;
+    const badge = p.status === 'aprobado' ? 'badge-verde' : 'badge-amarillo';
+    const bcs = (p.barcodes||[]).map(b => `<span class="barcode-tag">${b}</span>`).join('');
+    return `<div class="producto-card">${img}<div class="producto-info"><div class="producto-nombre">${p.normalized_name||'Sin nombre'}</div><div class="producto-meta">${[p.format,p.unit].filter(Boolean).join(' · ')}</div><span class="badge ${badge}">${p.status||'pendiente'}</span><div class="barcodes">${bcs}</div></div></div>`;
   }).join('');
-
-  document.getElementById('results-container').innerHTML = html;
 }
 
-function mostrarSinResultados(msg) {
+function sinResultados(codigo) {
   document.getElementById('results-count').innerHTML = '';
   document.getElementById('results-container').innerHTML = `
     <div class="estado">
-      <div class="icon">🔍</div>
-      <p>${msg}</p>
+      <div class="icono">🔍</div>
+      <p>No se encontró ningún producto${codigo ? ` con el código <strong>${codigo}</strong>` : ''}.</p>
+      <button class="btn btn-verde" onclick="irAgregar('${codigo}')">➕ Agregar este producto</button>
     </div>`;
 }
 
-// ============================================================
-// PREVIEW FOTO
-// ============================================================
-function previewFoto(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    document.getElementById('foto-preview').src = e.target.result;
-    document.getElementById('foto-preview-container').style.display = 'block';
-    document.getElementById('foto-drop').style.display = 'none';
-    fotoBase64 = e.target.result;
-    document.getElementById('foto-url').value = e.target.result;
-  };
-  reader.readAsDataURL(file);
+function irAgregar(codigo) {
+  // Ir a pestaña agregar y pre-llenar el código
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===1));
+  document.querySelectorAll('.section').forEach((s,i) => s.classList.toggle('active', i===1));
+  if (codigo) document.getElementById('nuevo-barcode').value = codigo;
+  document.getElementById('nuevo-nombre').focus();
+  window.scrollTo(0,0);
 }
 
-function cambiarFoto() {
-  document.getElementById('foto-input').value = '';
-  document.getElementById('foto-input').click();
+// ── FOTOS ─────────────────────────────────────────
+function agregarFotos(event) {
+  const files = Array.from(event.target.files);
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      fotosNuevas.push(e.target.result);
+      renderFotos();
+    };
+    reader.readAsDataURL(file);
+  });
+  event.target.value = '';
 }
 
-function eliminarFoto() {
-  document.getElementById('foto-preview').src = '';
-  document.getElementById('foto-preview-container').style.display = 'none';
-  document.getElementById('foto-drop').style.display = 'block';
-  document.getElementById('foto-input').value = '';
-  fotoBase64 = '';
-  document.getElementById('foto-url').value = '';
+function renderFotos() {
+  const grid = document.getElementById('fotos-grid');
+  const thumbs = fotosNuevas.map((foto, i) => `
+    <div class="foto-thumb">
+      <img src="${foto}">
+      <button class="eliminar-foto" onclick="eliminarFoto(${i})">✕</button>
+    </div>`).join('');
+  grid.innerHTML = thumbs + `
+    <div class="agregar-foto-btn" onclick="document.getElementById('foto-input-nuevo').click()">
+      <input type="file" id="foto-input-nuevo" accept="image/*" multiple onchange="agregarFotos(event)">
+      <span>📷</span>
+      <span style="font-size:11px; margin-top:4px;">Agregar</span>
+    </div>`;
 }
 
-// ============================================================
-// AGREGAR PRODUCTO
-// ============================================================
-async function agregarProducto() {
+function eliminarFoto(i) {
+  fotosNuevas.splice(i, 1);
+  renderFotos();
+}
+
+// ── GUARDAR PRODUCTO ──────────────────────────────
+async function guardarProducto() {
   const nombre = document.getElementById('nuevo-nombre').value.trim();
   const barcode = document.getElementById('nuevo-barcode').value.trim();
   const format = document.getElementById('nuevo-format').value.trim();
   const unit = document.getElementById('nuevo-unit').value;
 
   if (!nombre || !barcode) {
-    document.getElementById('agregar-msg').innerHTML = '<div class="error-msg">❌ El nombre y código de barra son obligatorios.</div>';
+    document.getElementById('agregar-msg').innerHTML = '<div class="msg-error">❌ Nombre y código de barra son obligatorios.</div>';
     return;
   }
 
-  setBtnLoading('btn-agregar-text', true, 'Guardando...');
+  setBtn('btn-guardar-txt', true, 'Guardando...');
   document.getElementById('agregar-msg').innerHTML = '';
 
   try {
-    // 1. Verificar si el barcode ya existe
-    const checkRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/barcodes?barcode=eq.${encodeURIComponent(barcode)}&select=id`,
-      { headers }
-    );
-    const existing = await checkRes.json();
-    if (existing.length > 0) {
-      document.getElementById('agregar-msg').innerHTML = '<div class="error-msg">⚠️ Ese código de barra ya existe en la base de datos.</div>';
-      setBtnLoading('btn-agregar-text', false, '✓ Guardar producto');
+    const chk = await fetch(`${SB_URL}/rest/v1/barcodes?barcode=eq.${encodeURIComponent(barcode)}&select=id`, { headers: H });
+    const existe = await chk.json();
+    if (existe.length) {
+      document.getElementById('agregar-msg').innerHTML = '<div class="msg-error">⚠️ Ese código de barra ya existe.</div>';
+      setBtn('btn-guardar-txt', false, '✓ Guardar producto');
       return;
     }
 
-    // 2. Crear producto
-    const productData = {
-      normalized_name: nombre,
-      format: format || null,
-      unit: unit,
-      image_url: fotoBase64 ? null : null, // imágenes locales no se suben en MVP
-      status: 'pendiente'
-    };
-
-    const prodRes = await fetch(`${SUPABASE_URL}/rest/v1/products`, {
+    const prodRes = await fetch(`${SB_URL}/rest/v1/products`, {
       method: 'POST',
-      headers: { ...headers, 'Prefer': 'return=representation' },
-      body: JSON.stringify(productData)
+      headers: { ...H, 'Prefer': 'return=representation' },
+      body: JSON.stringify({ normalized_name: nombre, format: format||null, unit, status: 'pendiente' })
     });
+    if (!prodRes.ok) throw new Error((await prodRes.json()).message);
+    const [prod] = await prodRes.json();
 
-    if (!prodRes.ok) {
-      const err = await prodRes.json();
-      throw new Error(err.message || 'Error al crear producto');
-    }
+    await fetch(`${SB_URL}/rest/v1/barcodes`, { method: 'POST', headers: H, body: JSON.stringify({ barcode, product_id: prod.id }) });
 
-    const [newProduct] = await prodRes.json();
-
-    // 3. Crear barcode
-    await fetch(`${SUPABASE_URL}/rest/v1/barcodes`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ barcode, product_id: newProduct.id })
-    });
-
-    document.getElementById('agregar-msg').innerHTML = '<div class="success-msg">✅ Producto guardado correctamente</div>';
-    // Limpiar formulario
+    document.getElementById('agregar-msg').innerHTML = '<div class="msg-ok">✅ Producto guardado correctamente</div>';
+    // Limpiar
     document.getElementById('nuevo-nombre').value = '';
     document.getElementById('nuevo-barcode').value = '';
     document.getElementById('nuevo-format').value = '';
-    document.getElementById('foto-preview').style.display = 'none';
-    fotoBase64 = '';
-
-  } catch (err) {
-    document.getElementById('agregar-msg').innerHTML = `<div class="error-msg">❌ Error: ${err.message}</div>`;
-  }
-
-  setBtnLoading('btn-agregar-text', false, '✓ Guardar producto');
-}
-
-// ============================================================
-// ESTADÍSTICAS
-// ============================================================
-async function cargarEstadisticas() {
-  try {
-    // Total
-    const r1 = await fetch(`${SUPABASE_URL}/rest/v1/products?select=id&limit=1`, 
-      { headers: { ...headers, 'Prefer': 'count=exact', 'Range': '0-0' } });
-    const total = r1.headers.get('Content-Range')?.split('/')[1] || '?';
-    document.getElementById('stat-total').textContent = parseInt(total).toLocaleString('es-CL');
-
-    // Aprobados
-    const r2 = await fetch(`${SUPABASE_URL}/rest/v1/products?status=eq.aprobado&select=id&limit=1`, 
-      { headers: { ...headers, 'Prefer': 'count=exact', 'Range': '0-0' } });
-    const aprobados = r2.headers.get('Content-Range')?.split('/')[1] || '?';
-    document.getElementById('stat-aprobados').textContent = parseInt(aprobados).toLocaleString('es-CL');
-
-    // Pendientes
-    const r3 = await fetch(`${SUPABASE_URL}/rest/v1/products?status=eq.pendiente&select=id&limit=1`, 
-      { headers: { ...headers, 'Prefer': 'count=exact', 'Range': '0-0' } });
-    const pendientes = r3.headers.get('Content-Range')?.split('/')[1] || '?';
-    document.getElementById('stat-pendientes').textContent = parseInt(pendientes).toLocaleString('es-CL');
+    fotosNuevas = [];
+    renderFotos();
 
   } catch(e) {
-    console.error(e);
+    document.getElementById('agregar-msg').innerHTML = `<div class="msg-error">❌ Error: ${e.message}</div>`;
   }
+  setBtn('btn-guardar-txt', false, '✓ Guardar producto');
 }
 
-// ============================================================
-// EXPORTAR EXCEL - TODOS LOS PRODUCTOS
-// ============================================================
-async function exportarExcel() {
-  setBtnLoading('btn-export-text', true, 'Descargando...');
-  document.getElementById('export-msg').innerHTML = '';
-
+// ── ESTADÍSTICAS ──────────────────────────────────
+async function cargarEstadisticas() {
+  const get = async (url) => {
+    const r = await fetch(url, { headers: { ...H, 'Prefer': 'count=exact', 'Range': '0-0' } });
+    return parseInt(r.headers.get('Content-Range')?.split('/')[1] || 0);
+  };
   try {
-    let allProducts = [];
-    let page = 0;
-    const pageSize = 1000;
+    const [total, aprobados, pendientes] = await Promise.all([
+      get(`${SB_URL}/rest/v1/products?select=id&limit=1`),
+      get(`${SB_URL}/rest/v1/products?status=eq.aprobado&select=id&limit=1`),
+      get(`${SB_URL}/rest/v1/products?status=eq.pendiente&select=id&limit=1`)
+    ]);
+    document.getElementById('stat-total').textContent = total.toLocaleString('es-CL');
+    document.getElementById('stat-aprobados').textContent = aprobados.toLocaleString('es-CL');
+    document.getElementById('stat-pendientes').textContent = pendientes.toLocaleString('es-CL');
+  } catch(e) {}
+}
 
+// ── EXPORTAR ──────────────────────────────────────
+async function exportarExcel() {
+  setBtn('btn-export-txt', true, 'Descargando...');
+  try {
+    let all = [], page = 0;
     while (true) {
-      const from = page * pageSize;
-      const to = from + pageSize - 1;
-      const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/products?select=normalized_name,format,unit,status,image_url,created_at`,
-        { headers: { ...headers, 'Range': `${from}-${to}` } }
-      );
-      const data = await res.json();
-      allProducts = allProducts.concat(data);
-      if (data.length < pageSize) break;
+      const from = page * 1000, to = from + 999;
+      const r = await fetch(`${SB_URL}/rest/v1/products?select=normalized_name,format,unit,status,created_at`, { headers: { ...H, 'Range': `${from}-${to}` } });
+      const data = await r.json();
+      all = all.concat(data);
+      if (data.length < 1000) break;
       page++;
     }
-
-    const rows = allProducts.map(p => ({
-      'Nombre': p.normalized_name || '',
-      'Formato': p.format || '',
-      'Unidad': p.unit || '',
-      'Estado': p.status || '',
-      'Imagen URL': p.image_url || '',
-      'Fecha creación': p.created_at ? p.created_at.substring(0, 10) : ''
-    }));
-
-    const ws = XLSX.utils.json_to_sheet(rows);
+    const ws = XLSX.utils.json_to_sheet(all.map(p => ({
+      'Nombre': p.normalized_name||'', 'Formato': p.format||'', 'Unidad': p.unit||'',
+      'Estado': p.status||'', 'Fecha': p.created_at?.substring(0,10)||''
+    })));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Productos');
     XLSX.writeFile(wb, `inventario-chile-${new Date().toISOString().substring(0,10)}.xlsx`);
-
-    document.getElementById('export-msg').innerHTML = `<div class="success-msg">✅ ${rows.length.toLocaleString('es-CL')} productos exportados</div>`;
-
-  } catch (err) {
-    document.getElementById('export-msg').innerHTML = `<div class="error-msg">❌ Error: ${err.message}</div>`;
+    document.getElementById('export-msg').innerHTML = `<div class="msg-ok">✅ ${all.length.toLocaleString('es-CL')} productos exportados</div>`;
+  } catch(e) {
+    document.getElementById('export-msg').innerHTML = `<div class="msg-error">❌ Error: ${e.message}</div>`;
   }
-
-  setBtnLoading('btn-export-text', false, '⬇️ Descargar Excel');
+  setBtn('btn-export-txt', false, '⬇️ Descargar Excel completo');
 }
 
-// ============================================================
-// EXPORTAR BÚSQUEDA ACTUAL
-// ============================================================
 function exportarBusqueda() {
-  if (!ultimoResultado.length) {
-    alert('Primero realiza una búsqueda para exportar los resultados.');
-    return;
-  }
-  const rows = ultimoResultado.map(p => ({
-    'Nombre': p.normalized_name || '',
-    'Formato': p.format || '',
-    'Unidad': p.unit || '',
-    'Estado': p.status || '',
-    'Códigos de barra': (p.barcodes || []).join(', '),
-    'Imagen URL': p.image_url || ''
-  }));
-  const ws = XLSX.utils.json_to_sheet(rows);
+  if (!ultimoResultado.length) { alert('Primero realiza una búsqueda.'); return; }
+  const ws = XLSX.utils.json_to_sheet(ultimoResultado.map(p => ({
+    'Nombre': p.normalized_name||'', 'Formato': p.format||'', 'Unidad': p.unit||'',
+    'Estado': p.status||'', 'Códigos': (p.barcodes||[]).join(', ')
+  })));
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Búsqueda');
   XLSX.writeFile(wb, `busqueda-${new Date().toISOString().substring(0,10)}.xlsx`);
 }
 
-// ============================================================
-// HELPERS
-// ============================================================
-function setBtnLoading(id, loading, text) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.innerHTML = loading ? `<span class="spinner"></span> ${text}` : text;
+// ── ESCÁNER (html5-qrcode - funciona en iPhone/Android/PC) ──
+function escanearParaAgregar() {
+  scannerCallback = (codigo) => { document.getElementById('nuevo-barcode').value = codigo; };
+  abrirEscaner();
 }
 
-// Auto-focus en el campo de búsqueda al cargar
-window.addEventListener('load', () => {
-  document.getElementById('barcode-input').focus();
-});
+function abrirEscaner() {
+  document.getElementById('scanner-modal').style.display = 'flex';
+  document.getElementById('scanner-status').textContent = 'Cargando escáner...';
 
-// ============================================================
-// ESCÁNER DE CÁMARA
-// ============================================================
-let scannerStream = null;
-let scannerInterval = null;
+  if (!window.Html5Qrcode) {
+    const s = document.createElement('script');
+    s.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
+    s.onload = iniciarScanner;
+    s.onerror = () => { document.getElementById('scanner-status').textContent = '❌ Error cargando. Verifica conexión.'; };
+    document.head.appendChild(s);
+  } else {
+    iniciarScanner();
+  }
+}
 
-async function abrirEscaner() {
-  const modal = document.getElementById('scanner-modal');
-  modal.style.display = 'flex';
+function iniciarScanner() {
   document.getElementById('scanner-status').textContent = 'Iniciando cámara...';
 
-  try {
-    scannerStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
-    });
-    const video = document.getElementById('scanner-video');
-    video.srcObject = scannerStream;
-    await video.play();
-    document.getElementById('scanner-status').textContent = 'Apunta al código de barra';
+  // html5-qrcode necesita un div propio, lo usamos en lugar del video
+  const video = document.getElementById('scanner-video');
+  video.style.display = 'none';
 
-    // Cargar librería de escaneo dinámicamente
-    if (!window.BarcodeDetector) {
-      // Usar BarcodeDetector nativo si está disponible (Chrome Android/iOS)
-      document.getElementById('scanner-status').textContent = 'Tu navegador no soporta escaneo nativo. Usa el campo de texto.';
-      return;
-    }
-
-    const detector = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'code_128', 'code_39', 'upc_a', 'upc_e'] });
-
-    scannerInterval = setInterval(async () => {
-      const video = document.getElementById('scanner-video');
-      if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
-
-      try {
-        const barcodes = await detector.detect(video);
-        if (barcodes.length > 0) {
-          const codigo = barcodes[0].rawValue;
-          cerrarEscaner();
-          document.getElementById('barcode-input').value = codigo;
-          document.getElementById('scanner-status').textContent = `Código detectado: ${codigo}`;
-          buscarPorCodigo();
-        }
-      } catch(e) {}
-    }, 300);
-
-  } catch (err) {
-    document.getElementById('scanner-status').textContent = '❌ No se pudo acceder a la cámara. Revisa los permisos.';
+  // Crear div para el scanner si no existe
+  let scanDiv = document.getElementById('html5-qr-div');
+  if (!scanDiv) {
+    scanDiv = document.createElement('div');
+    scanDiv.id = 'html5-qr-div';
+    scanDiv.style.cssText = 'width:100%; max-width:360px; border-radius:12px; overflow:hidden;';
+    video.parentNode.insertBefore(scanDiv, video);
   }
+  scanDiv.style.display = 'block';
+
+  zxingScanner = new Html5Qrcode('html5-qr-div');
+
+  zxingScanner.start(
+    { facingMode: 'environment' },
+    { fps: 10, qrbox: { width: 250, height: 150 }, aspectRatio: 1.5,
+      formatsToSupport: [
+        Html5QrcodeSupportedFormats.EAN_13,
+        Html5QrcodeSupportedFormats.EAN_8,
+        Html5QrcodeSupportedFormats.CODE_128,
+        Html5QrcodeSupportedFormats.CODE_39,
+        Html5QrcodeSupportedFormats.UPC_A,
+        Html5QrcodeSupportedFormats.UPC_E
+      ]
+    },
+    (codigo) => {
+      cerrarEscaner();
+      if (scannerCallback) {
+        scannerCallback(codigo);
+        scannerCallback = null;
+      } else {
+        document.getElementById('barcode-input').value = codigo;
+        buscarPorCodigo();
+      }
+    },
+    () => {}
+  ).then(() => {
+    document.getElementById('scanner-status').textContent = 'Apunta al código de barra 📦';
+  }).catch(e => {
+    document.getElementById('scanner-status').textContent = '❌ No se pudo acceder a la cámara. Permite el acceso en Ajustes.';
+  });
 }
 
 function cerrarEscaner() {
   document.getElementById('scanner-modal').style.display = 'none';
-  if (scannerInterval) { clearInterval(scannerInterval); scannerInterval = null; }
-  if (scannerStream) {
-    scannerStream.getTracks().forEach(t => t.stop());
-    scannerStream = null;
+  if (zxingScanner) {
+    zxingScanner.stop().catch(() => {});
+    zxingScanner = null;
   }
+  const scanDiv = document.getElementById('html5-qr-div');
+  if (scanDiv) scanDiv.style.display = 'none';
+  document.getElementById('scanner-video').style.display = 'block';
 }
+
+// ── HELPERS ───────────────────────────────────────
+function setBtn(id, loading, text) {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = loading ? `<span class="spinner"></span> ${text}` : text;
+}
+
+// Init
+cargarContador();
 </script>
 </body>
 </html>
