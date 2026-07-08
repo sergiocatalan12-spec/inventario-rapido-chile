@@ -131,86 +131,9 @@ input:focus, select:focus { border-color:var(--rojo); }
 <!-- LOGIN -->
 <div id="login-screen">
 
-  <!-- HERO con logo ICH grande metálico -->
+  <!-- HERO con logo ICH imagen real -->
   <div class="login-hero">
-    <svg width="260" height="130" viewBox="0 0 260 130" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <!-- Rojo metálico para la I -->
-        <linearGradient id="g-rojo" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%"   stop-color="#C0392B"/>
-          <stop offset="30%"  stop-color="#E04535"/>
-          <stop offset="55%"  stop-color="#B22222"/>
-          <stop offset="100%" stop-color="#8B1A1A"/>
-        </linearGradient>
-        <linearGradient id="g-rojo-brillo" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stop-color="rgba(255,160,140,0.55)"/>
-          <stop offset="40%"  stop-color="rgba(255,80,60,0.15)"/>
-          <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
-        </linearGradient>
-
-        <!-- Plateado metálico base para CH -->
-        <linearGradient id="g-plat" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stop-color="#F0F5F8"/>
-          <stop offset="18%"  stop-color="#D4E0E8"/>
-          <stop offset="45%"  stop-color="#B8C5CE"/>
-          <stop offset="72%"  stop-color="#8A9BA8"/>
-          <stop offset="88%"  stop-color="#B8C5CE"/>
-          <stop offset="100%" stop-color="#D4E0E8"/>
-        </linearGradient>
-        <!-- Brillo diagonal plateado -->
-        <linearGradient id="g-plat-brillo" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%"   stop-color="rgba(255,255,255,0.6)"/>
-          <stop offset="35%"  stop-color="rgba(255,255,255,0.15)"/>
-          <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-        </linearGradient>
-
-        <!-- Sombra profunda -->
-        <filter id="f-sombra" x="-15%" y="-15%" width="130%" height="130%">
-          <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#000" flood-opacity="0.55"/>
-        </filter>
-        <!-- Borde/relieve interior -->
-        <filter id="f-inner">
-          <feGaussianBlur stdDeviation="1.5" result="blur"/>
-          <feComposite in="SourceGraphic" in2="blur" operator="over"/>
-        </filter>
-      </defs>
-
-      <g filter="url(#f-sombra)">
-        <!-- ══ I ══ -->
-        <!-- Sombra lateral derecha (efecto 3D) -->
-        <rect x="18" y="12" width="24" height="106" rx="4" fill="#5A0A0A" opacity="0.5"/>
-        <!-- Cuerpo rojo -->
-        <rect x="14" y="10" width="24" height="106" rx="4" fill="url(#g-rojo)"/>
-        <!-- Brillo frontal I -->
-        <rect x="14" y="10" width="24" height="106" rx="4" fill="url(#g-rojo-brillo)"/>
-        <!-- Borde superior claro -->
-        <rect x="14" y="10" width="24" height="4" rx="2" fill="rgba(255,180,160,0.4)"/>
-
-        <!-- ══ C ══ -->
-        <!-- Sombra 3D C -->
-        <path d="M68 13 C68 13 44 13 44 65 C44 117 68 117 68 117 L104 117 L104 97 L68 97 C64 97 62 85 62 65 C62 45 64 33 68 33 L104 33 L104 13 Z" fill="#3A4A55" opacity="0.5" transform="translate(3,4)"/>
-        <!-- Cuerpo C plateado -->
-        <path d="M68 13 C68 13 44 13 44 65 C44 117 68 117 68 117 L104 117 L104 97 L68 97 C64 97 62 85 62 65 C62 45 64 33 68 33 L104 33 L104 13 Z" fill="url(#g-plat)"/>
-        <!-- Brillo C -->
-        <path d="M68 13 C68 13 44 13 44 65 C44 117 68 117 68 117 L104 117 L104 97 L68 97 C64 97 62 85 62 65 C62 45 64 33 68 33 L104 33 L104 13 Z" fill="url(#g-plat-brillo)"/>
-
-        <!-- ══ H ══ -->
-        <!-- Sombras 3D H -->
-        <rect x="116" y="14" width="22" height="106" rx="4" fill="#3A4A55" opacity="0.5" transform="translate(3,4)"/>
-        <rect x="218" y="14" width="22" height="106" rx="4" fill="#3A4A55" opacity="0.5" transform="translate(3,4)"/>
-        <!-- Palos H plateados -->
-        <rect x="114" y="12" width="22" height="106" rx="4" fill="url(#g-plat)"/>
-        <rect x="114" y="12" width="22" height="106" rx="4" fill="url(#g-plat-brillo)"/>
-        <rect x="216" y="12" width="22" height="106" rx="4" fill="url(#g-plat)"/>
-        <rect x="216" y="12" width="22" height="106" rx="4" fill="url(#g-plat-brillo)"/>
-        <!-- Travesaño H -->
-        <rect x="114" y="53" width="124" height="22" rx="4" fill="#3A4A55" opacity="0.4" transform="translate(3,4)"/>
-        <rect x="114" y="51" width="124" height="22" rx="4" fill="url(#g-plat)"/>
-        <rect x="114" y="51" width="124" height="22" rx="4" fill="url(#g-plat-brillo)"/>
-      </g>
-    </svg>
-    <p style="font-size:13px;font-weight:700;color:white;letter-spacing:2px;text-transform:uppercase;margin-top:2px;text-shadow:0 1px 6px rgba(0,0,0,0.5);">Inventario Chile</p>
-    <p style="font-size:10px;color:rgba(255,255,255,0.4);letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;">Sistema de inventario nacional</p>
+    <img src="/logo-ich.webp" alt="ICH" style="width:240px;max-width:80vw;filter:drop-shadow(0 8px 24px rgba(0,0,0,0.5));">
   </div>
 
   <div class="login-card">
