@@ -481,13 +481,23 @@ function onBarcodeInput(){
 async function guardar(){
   const nombre=document.getElementById('a-nombre').value.trim();
   const barcode=document.getElementById('a-barcode')?.value.trim();
+  const marca=document.getElementById('a-marca').value.trim();
+  const categoria=document.getElementById('a-cat').value;
+  const formato=document.getElementById('a-format').value.trim();
+  const unidad=document.getElementById('a-unit').value;
 
-  if(!nombre){
-    document.getElementById('a-msg').innerHTML='<div class="merr">❌ El nombre del producto es obligatorio.</div>';
-    return;
-  }
-  if(!barcode){
-    document.getElementById('a-msg').innerHTML='<div class="merr">❌ El código de barra es obligatorio. Fotografía o escribe el código.</div>';
+  // Validar todos los campos obligatorios
+  const errores=[];
+  if(fotos.length===0) errores.push('📷 Foto del producto');
+  if(!barcode) errores.push('📊 Código de barra');
+  if(!nombre) errores.push('📝 Nombre del producto');
+  if(!marca) errores.push('🏷️ Marca');
+  if(!categoria) errores.push('📂 Categoría');
+  if(!formato) errores.push('📦 Formato/Tamaño');
+  if(!unidad) errores.push('⚖️ Unidad de medida');
+
+  if(errores.length>0){
+    document.getElementById('a-msg').innerHTML=`<div class="merr">❌ Faltan campos obligatorios:<br>${errores.join('<br>')}</div>`;
     return;
   }
 
@@ -503,7 +513,7 @@ async function guardar(){
     }
     const pr=await fetch(`${SB}/rest/v1/products`,{
       method:'POST',headers:{...H,'Prefer':'return=representation'},
-      body:JSON.stringify({normalized_name:nombre,format:document.getElementById('a-format').value.trim()||null,unit:document.getElementById('a-unit').value})
+      body:JSON.stringify({normalized_name:nombre,format:formato,unit:unidad,status:'aprobado'})
     });
     if(!pr.ok) throw new Error((await pr.json()).message||'Error al guardar');
     const [prod]=await pr.json();
