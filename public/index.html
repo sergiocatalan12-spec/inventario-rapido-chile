@@ -18,8 +18,12 @@
 body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:var(--gris); color:var(--texto); min-height:100vh; }
 
 /* LOGIN */
-#login-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:20px; background:linear-gradient(160deg, #1B2A4A 0%, #243358 60%, #1B2A4A 100%); }
-.login-card { background:rgba(255,255,255,0.97); border-radius:20px; padding:32px 24px; width:100%; max-width:380px; box-shadow:0 20px 60px rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.1); }
+#login-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding:20px; background:linear-gradient(160deg, #0F1E36 0%, #1B2A4A 40%, #243358 70%, #1B2A4A 100%); position:relative; overflow:hidden; }
+#login-screen::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 30%, rgba(192,57,43,0.08) 0%, transparent 60%); pointer-events:none; }
+.login-hero { text-align:center; margin-bottom:28px; }
+.login-hero svg { filter:drop-shadow(0 4px 24px rgba(192,57,43,0.35)); }
+.login-hero p { font-size:11px; color:rgba(255,255,255,0.45); letter-spacing:2px; text-transform:uppercase; margin-top:8px; }
+.login-card { background:rgba(255,255,255,0.97); border-radius:20px; padding:28px 24px; width:100%; max-width:360px; box-shadow:0 24px 64px rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.08); }
 .login-logo { text-align:center; margin-bottom:20px; }
 .login-logo .flag { font-size:48px; }
 .login-logo h1 { font-size:20px; font-weight:800; color:var(--azul); margin-top:8px; }
@@ -126,33 +130,43 @@ input:focus, select:focus { border-color:var(--rojo); }
 
 <!-- LOGIN -->
 <div id="login-screen">
-  <div class="login-card">
-    <div class="login-logo">
-      <svg width="180" height="80" viewBox="0 0 180 80" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom:8px;">
-        <defs>
-          <linearGradient id="plateado" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#D4E0E8"/>
-            <stop offset="40%" stop-color="#B8C5CE"/>
-            <stop offset="100%" stop-color="#8A9BA8"/>
-          </linearGradient>
-          <linearGradient id="rojo" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#C0392B"/>
-            <stop offset="50%" stop-color="#B22222"/>
-            <stop offset="100%" stop-color="#8B1A1A"/>
-          </linearGradient>
-        </defs>
+
+  <!-- HERO con logo ICH grande -->
+  <div class="login-hero">
+    <svg width="220" height="100" viewBox="0 0 220 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="lg-plateado" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#E8F0F5"/>
+          <stop offset="35%" stop-color="#C8D8E2"/>
+          <stop offset="100%" stop-color="#8A9BA8"/>
+        </linearGradient>
+        <linearGradient id="lg-rojo" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#E04030"/>
+          <stop offset="50%" stop-color="#C0392B"/>
+          <stop offset="100%" stop-color="#8B1A1A"/>
+        </linearGradient>
+        <filter id="sombra-logo">
+          <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="rgba(0,0,0,0.4)"/>
+        </filter>
+      </defs>
+      <g filter="url(#sombra-logo)">
         <!-- I -->
-        <rect x="8" y="8" width="14" height="64" rx="2" fill="url(#rojo)"/>
+        <rect x="10" y="10" width="18" height="80" rx="3" fill="url(#lg-rojo)"/>
         <!-- C -->
-        <path d="M44 8 C44 8 28 8 28 40 C28 72 44 72 44 72 L72 72 L72 58 L44 58 C44 58 40 58 40 40 C40 22 44 22 44 22 L72 22 L72 8 Z" fill="url(#plateado)"/>
-        <!-- H -->
-        <rect x="82" y="8" width="14" height="64" rx="2" fill="url(#plateado)"/>
-        <rect x="150" y="8" width="14" height="64" rx="2" fill="url(#plateado)"/>
-        <rect x="82" y="34" width="82" height="12" rx="2" fill="url(#plateado)"/>
-      </svg>
-      <h1 style="font-size:18px;font-weight:800;color:#1B2A4A;letter-spacing:-0.5px;">Inventario Chile</h1>
-      <p style="font-size:12px;color:#7F8C8D;letter-spacing:1px;text-transform:uppercase;">Sistema de inventario nacional</p>
-    </div>
+        <path d="M54 10 C54 10 34 10 34 50 C34 90 54 90 54 90 L86 90 L86 73 L54 73 C54 73 50 73 50 50 C50 27 54 27 54 27 L86 27 L86 10 Z" fill="url(#lg-plateado)"/>
+        <!-- H palo izq -->
+        <rect x="98" y="10" width="18" height="80" rx="3" fill="url(#lg-plateado)"/>
+        <!-- H palo der -->
+        <rect x="184" y="10" width="18" height="80" rx="3" fill="url(#lg-plateado)"/>
+        <!-- H travesaño -->
+        <rect x="98" y="41" width="104" height="18" rx="3" fill="url(#lg-plateado)"/>
+      </g>
+    </svg>
+    <p>Sistema de inventario nacional</p>
+  </div>
+
+  <div class="login-card">
+    <div class="login-logo" style="display:none;"></div>
 
     <div class="login-tabs">
       <div class="login-tab active" onclick="loginShowTab('entrar',this)">Entrar</div>
@@ -190,7 +204,25 @@ input:focus, select:focus { border-color:var(--rojo); }
 <div id="app-screen">
   <header>
     <div class="header-left">
-      <div class="logo">🇨🇱</div>
+      <div class="logo">
+        <svg width="36" height="28" viewBox="0 0 220 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="h-plat" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#E8F0F5"/>
+              <stop offset="100%" stop-color="#9AAAB5"/>
+            </linearGradient>
+            <linearGradient id="h-rojo" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#E04030"/>
+              <stop offset="100%" stop-color="#8B1A1A"/>
+            </linearGradient>
+          </defs>
+          <rect x="10" y="10" width="18" height="80" rx="3" fill="url(#h-rojo)"/>
+          <path d="M54 10 C54 10 34 10 34 50 C34 90 54 90 54 90 L86 90 L86 73 L54 73 C50 73 50 50 50 50 C50 27 54 27 54 27 L86 27 L86 10 Z" fill="url(#h-plat)"/>
+          <rect x="98" y="10" width="18" height="80" rx="3" fill="url(#h-plat)"/>
+          <rect x="184" y="10" width="18" height="80" rx="3" fill="url(#h-plat)"/>
+          <rect x="98" y="41" width="104" height="18" rx="3" fill="url(#h-plat)"/>
+        </svg>
+      </div>
       <div>
         <h1>Inventario Chile</h1>
         <p id="hcount">Cargando...</p>
