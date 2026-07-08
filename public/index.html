@@ -486,8 +486,10 @@ function abrirScan(modo){
   Html5Qrcode.getCameras().then(cameras=>{
     if(!cameras||!cameras.length){document.getElementById('scan-status').textContent='❌ No se encontró cámara.';return;}
     const cam=cameras.find(c=>/back|trasera|rear|environment/i.test(c.label))||cameras[cameras.length-1];
+    const w = Math.min(window.innerWidth - 40, 340);
     qr.start(cam.id,
-      {fps:10,qrbox:{width:280,height:120},
+      {fps:15, qrbox:{width:w, height:Math.round(w*0.4)},
+       aspectRatio:1.7777,
        formatsToSupport:[
          Html5QrcodeSupportedFormats.EAN_13,Html5QrcodeSupportedFormats.EAN_8,
          Html5QrcodeSupportedFormats.CODE_128,Html5QrcodeSupportedFormats.CODE_39,
