@@ -30,9 +30,10 @@ export default async function handler(req, res) {
     if (levantamiento_id) url += `&id=eq.${levantamiento_id}`;
 
     const r = await fetch(url, { headers: H });
-    const data = await r.json();
+    const raw = await r.json();
+    const data = Array.isArray(raw) ? raw : [];
 
-    const result = (data || []).map(lev => ({
+    const result = data.map(lev => ({
       levantamiento_id: lev.id,
       fecha: lev.completado_at,
       total_productos: lev.levantamiento_items?.length || 0,
