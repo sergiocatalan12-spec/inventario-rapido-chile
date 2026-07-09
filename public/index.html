@@ -533,12 +533,21 @@ async function mostrarApp(user){
   const nombre=user.user_metadata?.full_name||user.email.split('@')[0];
   document.getElementById('user-info').textContent=nombre;
 
-  // Cargar rol desde tabla users
-  const {data:udata, error:uerr}=await supa.from('users').select('rol').eq('id',user.id).single();
-  console.log('ROL DATA:', udata, 'ERROR:', uerr);
-  const rol=udata?.rol || user.user_metadata?.rol || 'operador';
+  // Cargar rol — primero desde tabla users, fallback a auth metadata
+  let rol = 'operador';
+  try {
+    const {data:udata}=await supa.from('users').select('rol').eq('id',user.id).single();
+    console.log('ROL DATA:', udata);
+    if(udata?.rol) rol = udata.rol;
+    else rol = user.user_metadata?.rol || 'operador';
+  } catch(e) {
+    rol = user.user_metadata?.rol || 'operador';
+  }
   console.log('ROL FINAL:', rol);
   usuarioActual.rol=rol;
+
+  // Forzar editor para el usuario administrador (sergiocatalan12@gmail.com)
+  if(user.email && user.email.toLowerCase().includes('sergiocatalan')) rol='editor';
 
   // Adaptar interfaz según rol
   if(rol==='operador'){
