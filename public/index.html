@@ -375,9 +375,9 @@ input:focus, select:focus { border-color:var(--rojo); }
       <div class="card">
         <h2 style="margin-bottom:4px;">🔑 Clientes API</h2>
         <p style="font-size:13px;color:var(--suave);margin-bottom:16px;">Genera llaves de acceso para ERPs que se conecten a ICH</p>
-        <div style="display:flex;gap:8px;margin-bottom:16px;">
-          <input type="text" id="api-nombre" placeholder="Nombre de la ERP (ej: Bsale, Defontana...)" style="margin-bottom:0;flex:1;">
-          <button class="btn btn-azul" style="margin:0;padding:0 16px;white-space:nowrap;" onclick="crearApiKey()"><span id="api-btn-txt">➕ Crear</span></button>
+        <div style="margin-bottom:16px;">
+        <input type="text" id="api-nombre" placeholder="Nombre de la ERP (ej: Bsale, Defontana...)" style="margin-bottom:10px;flex:none;width:100%;">
+        <button class="btn btn-azul" style="margin:0;width:100%;" onclick="crearApiKey()"><span id="api-btn-txt">➕ Crear API Key</span></button>
         </div>
         <div id="api-msg"></div>
       </div>
