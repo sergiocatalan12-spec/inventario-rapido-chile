@@ -229,7 +229,7 @@ input:focus, select:focus { border-color:var(--rojo); }
     <div class="section active" id="tab-buscar">
       <div class="card">
         <div class="row">
-          <input type="text" id="b-input" placeholder="Código o nombre del producto..." inputmode="numeric" autocomplete="off" onkeydown="if(event.key==='Enter')buscarCodigo()">
+          <input type="text" id="b-input" placeholder="Código o nombre del producto..." inputmode="numeric" autocomplete="off" onkeydown="if(event.key==='Enter')buscarCodigo()" oninput="onBuscarInput(this.value)">
           <button class="btn btn-rojo btn-sm" style="width:auto;" onclick="buscarCodigo()"><span id="b-txt">Buscar</span></button>
         </div>
         <button class="btn btn-azul" onclick="abrirScan()">📷 Escanear código de barra</button>
@@ -458,6 +458,21 @@ async function cargarContador(){
     const ct=r.headers.get('Content-Range')?.split('/')[1];
     document.getElementById('hcount').textContent=ct?`${parseInt(ct).toLocaleString('es-CL')} productos`:'Base de datos nacional';
   }catch(e){document.getElementById('hcount').textContent='Base de datos nacional';}
+}
+
+// ── PISTOLA BLUETOOTH ─────────────────────────────
+let buscarTimer=null;
+function onBuscarInput(val){
+  // Las pistolas mandan el código completo muy rápido (< 100ms por caracter)
+  // Si el valor tiene 8+ dígitos, esperamos 300ms y si no cambió, buscamos
+  clearTimeout(buscarTimer);
+  if(/^\d{8,}$/.test(val.trim())){
+    buscarTimer=setTimeout(()=>{
+      if(document.getElementById('b-input').value.trim()===val.trim()){
+        buscarCodigo();
+      }
+    },300);
+  }
 }
 
 // ── BUSCAR ────────────────────────────────────────
