@@ -1,44 +1,38 @@
 // /api/inventario.js — Endpoint público para ERPs
-// Uso: GET /api/inventario?api_key=TU_KEY&levantamiento_id=UUID
-//      POST /api/inventario — recibe webhook cuando operador da OK
-
-const SB_URL = process.env.SUPABASE_URL;
-const SB_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
-
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-api-key');
-
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  // Obtener API key desde header o query
+  const SB_URL = 'https://vqwgxshbxixsbqxrejpi.supabase.co';
+  const SB_KEY = 'sb_publishable_7kPWMGQhvmDTmVkcqVVsZw_zRWJDYc3';
+  const H = { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' };
+
+  // Obtener API key
   const apiKey = req.headers['x-api-key'] || req.query.api_key;
   if (!apiKey) return res.status(401).json({ error: 'API key requerida' });
 
-  // Validar API key en Supabase
-  const clientRes = await fetch(
-    `${SB_URL}/rest/v1/api_clients?api_key=eq.${apiKey}&activo=eq.true&select=id,nombre`,
-    { headers: { 'apikey': SB_SERVICE_KEY, 'Authorization': `Bearer ${SB_SERVICE_KEY}` } }
-  );
-  const clients = await clientRes.json();
-  if (!clients.length) return res.status(403).json({ error: 'API key inválida o inactiva' });
-  const client = clients[0];
+  try {
+    // Validar API key
+    const clientRes = await fetch(
+      `${SB_URL}/rest/v1/api_clients?api_key=eq.${apiKey}&activo=eq.true&select=id,nombre`,
+      { headers: H }
+    );
+    const clients = await clientRes.json();
+    if (!clients.length) return res.status(403).json({ error: 'API key inválida o inactiva' });
+    const client = clients[0];
 
-  // GET — consultar levantamiento específico o listar todos
-  if (req.method === 'GET') {
     const { levantamiento_id } = req.query;
 
-    let url = `${SB_URL}/rest/v1/levantamientos?api_client_id=eq.${client.id}&estado=eq.completado&select=id,created_at,completado_at,operador_id,levantamiento_items(barcode,nombre,formato,unidad,precio_costo,cantidad,es_nuevo,product_id)&order=completado_at.desc`;
+    // Consultar levantamientos completados
+    let url = `${SB_URL}/rest/v1/levantamientos?api_client_id=eq.${client.id}&estado=eq.completado&select=id,created_at,completado_at,levantamiento_items(barcode,nombre,formato,unidad,precio_costo,cantidad,es_nuevo,product_id)&order=completado_at.desc`;
     if (levantamiento_id) url += `&id=eq.${levantamiento_id}`;
 
-    const r = await fetch(url, {
-      headers: { 'apikey': SB_SERVICE_KEY, 'Authorization': `Bearer ${SB_SERVICE_KEY}` }
-    });
+    const r = await fetch(url, { headers: H });
     const data = await r.json();
 
-    // Formatear respuesta
-    const result = data.map(lev => ({
+    const result = (data || []).map(lev => ({
       levantamiento_id: lev.id,
       fecha: lev.completado_at,
       total_productos: lev.levantamiento_items?.length || 0,
@@ -56,24 +50,13 @@ module.exports = async (req, res) => {
       }))
     }));
 
-    // Marcar como enviado si se pidió uno específico
-    if (levantamiento_id && result.length) {
-      await fetch(`${SB_URL}/rest/v1/levantamientos?id=eq.${levantamiento_id}`, {
-        method: 'PATCH',
-        headers: {
-          'apikey': SB_SERVICE_KEY,
-          'Authorization': `Bearer ${SB_SERVICE_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ estado: 'enviado' })
-      });
-    }
-
     return res.status(200).json({
       cliente: client.nombre,
-      levantamientos: levantamiento_id ? result[0] || null : result
+      total: result.length,
+      levantamientos: levantamiento_id ? (result[0] || null) : result
     });
-  }
 
-  return res.status(405).json({ error: 'Método no permitido' });
-};
+  } catch(e) {
+    return res.status(500).json({ error: e.message });
+  }
+}
