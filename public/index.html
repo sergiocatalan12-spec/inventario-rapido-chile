@@ -360,7 +360,10 @@ input:focus, select:focus { border-color:var(--rojo); }
       <div class="card" style="padding-top:12px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
           <h3 style="margin:0;">Productos levantados <span id="inv-count" style="font-size:13px;color:var(--suave);font-weight:400;"></span></h3>
-          <button class="btn btn-verde" style="padding:8px 14px;font-size:13px;margin:0;" onclick="exportarInventario()">⬇️ Exportar Excel</button>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-verde" style="padding:8px 12px;font-size:13px;margin:0;flex:1;" onclick="exportarInventario()">⬇️ Excel</button>
+            <button class="btn btn-azul" style="padding:8px 12px;font-size:13px;margin:0;flex:1;" onclick="completarLevantamiento()">🔗 Completar y enviar a ERP</button>
+          </div>
         </div>
         <div id="inv-lista"><p style="color:var(--suave);font-size:13px;text-align:center;padding:20px 0;">Aún no has agregado productos</p></div>
       </div>
@@ -680,6 +683,46 @@ async function exportarInventario(){
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'Inventario');
   XLSX.writeFile(wb,`inventario_${nombre.replace(/ /g,'_')}_${fecha.replace(/\//g,'-')}.xlsx`);
+}
+
+async function completarLevantamiento(){
+  if(!invItems.length){alert('No hay productos en tu inventario todavía');return;}
+  
+  // Crear levantamiento en Supabase
+  const {data:lev, error}=await supa.from('levantamientos').insert({
+    operador_id: usuarioActual.id,
+    estado: 'completado',
+    completado_at: new Date().toISOString()
+  }).select().single();
+  
+  if(error){alert('Error al guardar levantamiento');return;}
+  
+  // Guardar items
+  const items=invItems.map(it=>({
+    levantamiento_id: lev.id,
+    barcode: it.barcode||null,
+    product_id: it.id||null,
+    nombre: it.nombre,
+    formato: it.formato||'',
+    unidad: it.unidad||'unidad',
+    cantidad: it.cantidad,
+    es_nuevo: it.esNuevo||false
+  }));
+  
+  await supa.from('levantamiento_items').insert(items);
+  
+  // Mostrar resultado con ID para compartir a ERP
+  document.getElementById('inv-lista').innerHTML=`
+    <div style="background:#f0f7f0;border:2px solid #27ae60;border-radius:12px;padding:16px;text-align:center;">
+      <p style="font-size:18px;margin-bottom:8px;">✅ Levantamiento completado</p>
+      <p style="font-size:13px;color:var(--suave);margin-bottom:12px;">${invItems.length} productos guardados</p>
+      <p style="font-size:11px;color:var(--suave);margin-bottom:4px;">ID para la ERP:</p>
+      <p style="font-family:monospace;font-size:12px;background:#e8f5e9;padding:8px;border-radius:6px;word-break:break-all;">${lev.id}</p>
+      <p style="font-size:11px;color:var(--suave);margin-top:8px;">Comparte este ID con tu ERP o descarga el Excel</p>
+      <button class="btn btn-verde" style="margin-top:12px;" onclick="exportarInventario()">⬇️ Descargar Excel</button>
+    </div>`;
+  invItems=[];
+  document.getElementById('inv-count').textContent='';
 }
 
 // ── BUSCAR ────────────────────────────────────────
