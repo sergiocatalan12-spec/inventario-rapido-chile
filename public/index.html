@@ -41,8 +41,9 @@ header h1 { font-size:16px; font-weight:700; }
 header p { font-size:10px; opacity:0.85; }
 .btn-logout { background:rgba(255,255,255,0.2); border:none; color:white; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; }
 
-.tabs { display:flex; background:#243358; }
-.tab { flex:1; padding:13px 8px; color:rgba(255,255,255,0.6); font-size:12px; font-weight:600; cursor:pointer; border-bottom:3px solid transparent; text-align:center; }
+.tabs { display:flex; background:#243358; align-items:center; height:46px; border-bottom:3px solid var(--rojo); position:relative; }
+.tab { padding:13px 16px; color:rgba(255,255,255,0.7); font-size:14px; font-weight:600; cursor:pointer; width:100%; box-sizing:border-box; border-bottom:none; text-align:left; }
+.tab:hover, .tab.active { color:white; background:rgba(255,255,255,0.1); }
 .tab.active { color:white; border-bottom-color:#C0392B; }
 
 .content { padding:16px; max-width:600px; margin:0 auto; }
@@ -224,13 +225,19 @@ input:focus, select:focus { border-color:var(--rojo); }
     </div>
   </header>
 
-  <div class="tabs">
-    <div class="tab active" id="tab-nav-buscar" onclick="showTab('buscar',this)">🔍 Buscar</div>
-    <div class="tab" id="tab-nav-inventario" style="display:none;" onclick="showTab('inventario',this)">📋 Mi inventario</div>
-    <div class="tab" id="tab-nav-agregar" onclick="showTab('agregar',this)">➕ Agregar</div>
-    <div class="tab" id="tab-nav-exportar" onclick="showTab('exportar',this)">📊 Exportar</div>
-    <div class="tab" id="tab-nav-apikeys" style="display:none;" onclick="showTab('apikeys',this)">🔑 API Keys</div>
-    <div class="tab" id="tab-nav-admin" style="display:none;" onclick="showTab('admin',this)">⚙️ Admin</div>
+  <div class="tabs" style="position:relative;">
+    <div id="menu-current" style="display:flex;align-items:center;gap:8px;padding:0 16px;font-size:14px;font-weight:700;color:white;cursor:pointer;flex:1;" onclick="toggleMenu()">
+      <span id="menu-current-label">🔍 Buscar</span>
+    </div>
+    <div onclick="toggleMenu()" style="padding:0 16px;cursor:pointer;font-size:20px;color:white;">☰</div>
+    <div id="menu-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#1B2A4A;z-index:100;border-top:2px solid #C0392B;box-shadow:0 8px 24px rgba(0,0,0,0.4);">
+      <div class="tab" id="tab-nav-buscar" onclick="showTab('buscar',this);closeMenu();" style="border-radius:0;border-bottom:1px solid rgba(255,255,255,0.1);">🔍 Buscar</div>
+      <div class="tab" id="tab-nav-inventario" style="display:none;border-radius:0;border-bottom:1px solid rgba(255,255,255,0.1);" onclick="showTab('inventario',this);closeMenu();">📋 Mi inventario</div>
+      <div class="tab" id="tab-nav-agregar" style="border-radius:0;border-bottom:1px solid rgba(255,255,255,0.1);" onclick="showTab('agregar',this);closeMenu();">➕ Agregar</div>
+      <div class="tab" id="tab-nav-exportar" style="border-radius:0;border-bottom:1px solid rgba(255,255,255,0.1);" onclick="showTab('exportar',this);closeMenu();">📊 Exportar</div>
+      <div class="tab" id="tab-nav-apikeys" style="display:none;border-radius:0;border-bottom:1px solid rgba(255,255,255,0.1);" onclick="showTab('apikeys',this);closeMenu();">🔑 API Keys</div>
+      <div class="tab" id="tab-nav-admin" style="display:none;border-radius:0;" onclick="showTab('admin',this);closeMenu();">⚙️ Admin</div>
+    </div>
   </div>
 
   <div id="scan-modal">
@@ -639,11 +646,26 @@ async function mostrarApp(user){
 })();
 
 // ── TABS ──────────────────────────────────────────
+function toggleMenu(){
+  const m=document.getElementById('menu-dropdown');
+  m.style.display=m.style.display==='none'?'block':'none';
+}
+function closeMenu(){
+  const m=document.getElementById('menu-dropdown');
+  if(m) m.style.display='none';
+}
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.tabs')) closeMenu();
+});
+
 function showTab(tab,el){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   el.classList.add('active');
   document.getElementById('tab-'+tab).classList.add('active');
+  // Actualizar label del menú
+  const label=document.getElementById('menu-current-label');
+  if(label) label.textContent=el.textContent.trim();
   if(tab==='exportar') loadStats();
   if(tab==='apikeys') cargarApiKeys();
   if(tab==='admin') cargarAdmin();
