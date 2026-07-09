@@ -230,6 +230,7 @@ input:focus, select:focus { border-color:var(--rojo); }
     <div class="tab" id="tab-nav-agregar" onclick="showTab('agregar',this)">➕ Agregar</div>
     <div class="tab" id="tab-nav-exportar" onclick="showTab('exportar',this)">📊 Exportar</div>
     <div class="tab" id="tab-nav-apikeys" style="display:none;" onclick="showTab('apikeys',this)">🔑 API Keys</div>
+    <div class="tab" id="tab-nav-admin" style="display:none;" onclick="showTab('admin',this)">⚙️ Admin</div>
   </div>
 
   <div id="scan-modal">
@@ -368,6 +369,43 @@ input:focus, select:focus { border-color:var(--rojo); }
         </div>
         <div id="inv-lista"><p style="color:var(--suave);font-size:13px;text-align:center;padding:20px 0;">Aún no has agregado productos</p></div>
       </div>
+    </div>
+
+    <!-- ADMIN -->
+    <div class="section" id="tab-admin">
+
+      <!-- ESTADÍSTICAS -->
+      <div class="card">
+        <h2 style="margin-bottom:16px;">📊 Estadísticas ICH</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px;">
+          <div style="background:linear-gradient(135deg,#1B2A4A,#243358);border-radius:12px;padding:16px;text-align:center;">
+            <p style="font-size:28px;font-weight:800;color:white;margin-bottom:4px;" id="stat-usuarios">—</p>
+            <p style="font-size:11px;color:rgba(255,255,255,0.6);">Usuarios registrados</p>
+          </div>
+          <div style="background:linear-gradient(135deg,#C0392B,#8B1A1A);border-radius:12px;padding:16px;text-align:center;">
+            <p style="font-size:28px;font-weight:800;color:white;margin-bottom:4px;" id="stat-levantamientos">—</p>
+            <p style="font-size:11px;color:rgba(255,255,255,0.6);">Levantamientos</p>
+          </div>
+          <div style="background:linear-gradient(135deg,#27AE60,#1A6B3C);border-radius:12px;padding:16px;text-align:center;">
+            <p style="font-size:28px;font-weight:800;color:white;margin-bottom:4px;" id="stat-productos-nuevos">—</p>
+            <p style="font-size:11px;color:rgba(255,255,255,0.6);">Productos nuevos aportados</p>
+          </div>
+          <div style="background:linear-gradient(135deg,#8E44AD,#5B2C6F);border-radius:12px;padding:16px;text-align:center;">
+            <p style="font-size:28px;font-weight:800;color:white;margin-bottom:4px;" id="stat-catalogo">—</p>
+            <p style="font-size:11px;color:rgba(255,255,255,0.6);">Total catálogo</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- USUARIOS -->
+      <div class="card" style="padding-top:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <h3 style="margin:0;">👥 Usuarios registrados</h3>
+          <button class="btn btn-azul" style="padding:8px 12px;font-size:12px;margin:0;" onclick="cargarUsuarios()">🔄 Actualizar</button>
+        </div>
+        <div id="admin-usuarios"><p style="color:var(--suave);font-size:13px;text-align:center;padding:16px 0;">Cargando...</p></div>
+      </div>
+
     </div>
 
     <!-- API KEYS -->
@@ -554,11 +592,13 @@ async function mostrarApp(user){
     document.getElementById('tab-nav-agregar').style.display='none';
     document.getElementById('tab-nav-inventario').style.display='flex';
     document.getElementById('tab-nav-apikeys').style.display='none';
+    document.getElementById('tab-nav-admin').style.display='none';
     showTab('inventario', document.getElementById('tab-nav-inventario'));
   } else {
     document.getElementById('tab-nav-agregar').style.display='flex';
     document.getElementById('tab-nav-inventario').style.display='none';
     document.getElementById('tab-nav-apikeys').style.display='flex';
+    document.getElementById('tab-nav-admin').style.display='flex';
   }
 
   cargarContador();
@@ -580,6 +620,7 @@ function showTab(tab,el){
   document.getElementById('tab-'+tab).classList.add('active');
   if(tab==='exportar') loadStats();
   if(tab==='apikeys') cargarApiKeys();
+  if(tab==='admin') cargarAdmin();
 }
 
 // ── CONTADOR ──────────────────────────────────────
@@ -764,6 +805,64 @@ async function completarLevantamiento(){
     </div>`;
   invItems=[];
   document.getElementById('inv-count').textContent='';
+}
+
+// ── ADMIN ─────────────────────────────────────────
+async function cargarAdmin(){
+  cargarEstadisticas();
+  cargarUsuarios();
+}
+
+async function cargarEstadisticas(){
+  try {
+    // Total usuarios
+    const {count:cu}=await supa.from('users').select('*',{count:'exact',head:true});
+    document.getElementById('stat-usuarios').textContent=cu||0;
+
+    // Total levantamientos
+    const {count:cl}=await supa.from('levantamientos').select('*',{count:'exact',head:true});
+    document.getElementById('stat-levantamientos').textContent=cl||0;
+
+    // Productos nuevos aportados por operadores
+    const {count:cpn}=await supa.from('levantamiento_items').select('*',{count:'exact',head:true}).eq('es_nuevo',true);
+    document.getElementById('stat-productos-nuevos').textContent=cpn||0;
+
+    // Total catálogo
+    const {count:cc}=await supa.from('products').select('*',{count:'exact',head:true});
+    document.getElementById('stat-catalogo').textContent=cc?.toLocaleString('es-CL')||0;
+  } catch(e){ console.error('Stats error:', e); }
+}
+
+async function cargarUsuarios(){
+  const el=document.getElementById('admin-usuarios');
+  const {data,error}=await supa.from('users').select('id,email,full_name,rol,created_at').order('created_at',{ascending:false});
+  if(error||!data){el.innerHTML='<p style="color:var(--suave);font-size:13px;text-align:center;padding:16px;">Error al cargar usuarios</p>';return;}
+  if(!data.length){el.innerHTML='<p style="color:var(--suave);font-size:13px;text-align:center;padding:16px;">No hay usuarios aún</p>';return;}
+
+  el.innerHTML=data.map(u=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--borde);">
+      <div style="width:38px;height:38px;border-radius:50%;background:${u.rol==='editor'?'#1B2A4A':'#C0392B'};display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">
+        ${u.rol==='editor'?'✏️':'📦'}
+      </div>
+      <div style="flex:1;min-width:0;">
+        <p style="font-weight:700;font-size:14px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.full_name||'Sin nombre'}</p>
+        <p style="font-size:11px;color:var(--suave);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.email}</p>
+        <p style="font-size:10px;color:var(--suave);">${new Date(u.created_at).toLocaleDateString('es-CL')}</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0;">
+        <span style="padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700;background:${u.rol==='editor'?'#EBF0F8':'#FDECEA'};color:${u.rol==='editor'?'#1B2A4A':'#C0392B'};">${u.rol==='editor'?'Editor':'Operador'}</span>
+        <button onclick="cambiarRol('${u.id}','${u.rol}')" style="font-size:10px;padding:3px 8px;border-radius:6px;border:1px solid var(--borde);background:white;cursor:pointer;color:var(--azul);">
+          ${u.rol==='editor'?'→ Operador':'→ Editor'}
+        </button>
+      </div>
+    </div>`).join('');
+}
+
+async function cambiarRol(id, rolActual){
+  const nuevoRol=rolActual==='editor'?'operador':'editor';
+  const {error}=await supa.from('users').update({rol:nuevoRol}).eq('id',id);
+  if(!error) cargarUsuarios();
+  else alert('Error al cambiar rol');
 }
 
 // ── API KEYS ──────────────────────────────────────
