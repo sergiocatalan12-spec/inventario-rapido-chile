@@ -754,14 +754,48 @@ async function buscarParaInventario(){
   if(producto){
     res.innerHTML=`
       <div style="background:#f0f7f0;border:2px solid #27ae60;border-radius:10px;padding:14px;">
-        <p style="font-weight:700;font-size:15px;margin-bottom:8px;">✅ ${producto.normalized_name}</p>
+        <p style="font-weight:700;font-size:15px;margin-bottom:4px;">✅ ${producto.normalized_name}</p>
         <p style="font-size:12px;color:var(--suave);margin-bottom:12px;">${producto.format||''} ${producto.unit||''}</p>
-        <label class="flabel">CANTIDAD</label>
-        <div class="row" style="gap:8px;">
-          <input type="number" id="inv-qty" placeholder="0" min="0" style="font-size:18px;font-weight:700;text-align:center;width:120px;">
-          <button class="btn btn-verde" style="flex:1;margin:0;" onclick="agregarAlInventario('${producto.id}','${(producto.normalized_name||'').replace(/'/g,"\\'")}','${producto.format||''}','${producto.unit||''}','${barcode}')">➕ Agregar</button>
+        
+        <label class="flabel">EMPAQUE</label>
+        <select id="inv-empaque" style="margin-bottom:10px;">
+          <option value="unidad">Unidad suelta</option>
+          <option value="pack2">Pack x2</option>
+          <option value="pack4">Pack x4</option>
+          <option value="pack6">Six pack x6</option>
+          <option value="pack12">Pack x12</option>
+          <option value="pack24">Caja x24</option>
+          <option value="pack48">Caja x48</option>
+          <option value="otro">Otro (escribir)</option>
+        </select>
+        <input type="text" id="inv-empaque-otro" placeholder="Ej: Bolsa x500g" style="display:none;margin-bottom:10px;">
+        
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;">
+          <div>
+            <label class="flabel">CANTIDAD</label>
+            <input type="number" id="inv-qty" placeholder="0" min="0" style="font-size:16px;font-weight:700;text-align:center;margin-bottom:0;">
+          </div>
+          <div>
+            <label class="flabel">$ COMPRA</label>
+            <input type="number" id="inv-precio-compra" placeholder="0" min="0" style="font-size:14px;text-align:center;margin-bottom:0;">
+          </div>
+          <div>
+            <label class="flabel">$ VENTA</label>
+            <input type="number" id="inv-precio-venta" placeholder="0" min="0" style="font-size:14px;text-align:center;margin-bottom:0;">
+          </div>
         </div>
+        <div id="inv-margen" style="font-size:12px;color:var(--suave);text-align:center;margin-bottom:10px;min-height:16px;"></div>
+        <button class="btn btn-verde" style="margin:0;width:100%;" onclick="agregarAlInventario('${producto.id}','${(producto.normalized_name||'').replace(/'/g,"\\'")}','${producto.format||''}','${producto.unit||''}','${barcode}')">➕ Agregar al levantamiento</button>
       </div>`;
+
+    // Calcular margen en tiempo real
+    document.getElementById('inv-precio-compra').addEventListener('input', calcularMargen);
+    document.getElementById('inv-precio-venta').addEventListener('input', calcularMargen);
+    
+    // Mostrar campo otro empaque
+    document.getElementById('inv-empaque').addEventListener('change', function(){
+      document.getElementById('inv-empaque-otro').style.display = this.value==='otro' ? 'block' : 'none';
+    });
   } else {
     // No existe — ofrecer agregar nuevo
     res.innerHTML=`
@@ -777,11 +811,39 @@ async function buscarParaInventario(){
   }
 }
 
+function calcularMargen(){
+  const compra=parseFloat(document.getElementById('inv-precio-compra')?.value)||0;
+  const venta=parseFloat(document.getElementById('inv-precio-venta')?.value)||0;
+  const el=document.getElementById('inv-margen');
+  if(!el) return;
+  if(compra>0 && venta>0){
+    const margen=((venta-compra)/compra*100).toFixed(1);
+    const ganancia=venta-compra;
+    el.innerHTML=`<span style="color:${margen>0?'#27ae60':'#c0392b'};font-weight:700;">Margen: ${margen}% — Ganancia: $${ganancia.toLocaleString('es-CL')}</span>`;
+  } else {
+    el.innerHTML='';
+  }
+}
+
 function agregarAlInventario(id,nombre,formato,unidad,barcode){
   const qty=parseFloat(document.getElementById('inv-qty').value)||0;
-  // Si ya existe el producto, sumar cantidad
+  const precioCompra=parseFloat(document.getElementById('inv-precio-compra')?.value)||0;
+  const precioVenta=parseFloat(document.getElementById('inv-precio-venta')?.value)||0;
+  const empaqueEl=document.getElementById('inv-empaque');
+  let empaque=empaqueEl?.value||'unidad';
+  if(empaque==='otro') empaque=document.getElementById('inv-empaque-otro')?.value||'unidad';
+  
+  const margen=precioCompra>0&&precioVenta>0 ? ((precioVenta-precioCompra)/precioCompra*100).toFixed(1) : 0;
+  
   const existe=invItems.find(i=>i.id===id);
-  if(existe){ existe.cantidad+=qty; } else { invItems.push({id,nombre,formato,unidad,barcode,cantidad:qty}); }
+  if(existe){ 
+    existe.cantidad+=qty;
+    if(precioCompra) existe.precioCompra=precioCompra;
+    if(precioVenta) existe.precioVenta=precioVenta;
+    if(empaque!=='unidad') existe.empaque=empaque;
+  } else { 
+    invItems.push({id,nombre,formato,unidad,barcode,cantidad:qty,precioCompra,precioVenta,empaque,margen}); 
+  }
   document.getElementById('inv-input').value='';
   document.getElementById('inv-resultado').innerHTML='<div class="mok" style="margin-top:0;">✅ Agregado al inventario</div>';
   renderInvLista();
@@ -815,23 +877,62 @@ function renderInvLista(){
   }
   count.textContent=`(${invItems.length})`;
   lista.innerHTML=invItems.map((it,i)=>`
-    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--borde);">
-      <div style="flex:1;">
-        <p style="font-weight:600;font-size:14px;margin-bottom:2px;">${it.nombre}</p>
-        <p style="font-size:12px;color:var(--suave);">${it.formato} ${it.unidad}</p>
+    <div style="padding:10px 0;border-bottom:1px solid var(--borde);">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <div style="flex:1;">
+          <p style="font-weight:600;font-size:14px;margin-bottom:2px;">${it.nombre}</p>
+          <p style="font-size:11px;color:var(--suave);">${it.empaque||'Unidad'} ${it.formato||''}</p>
+        </div>
+        <input type="number" value="${it.cantidad}" min="0" style="width:60px;text-align:center;font-weight:700;font-size:15px;padding:5px;" onchange="invItems[${i}].cantidad=parseFloat(this.value)||0">
+        <button onclick="invItems.splice(${i},1);renderInvLista();" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--suave);">✕</button>
       </div>
-      <input type="number" value="${it.cantidad}" min="0" style="width:70px;text-align:center;font-weight:700;font-size:16px;padding:6px;" onchange="invItems[${i}].cantidad=parseFloat(this.value)||0">
-      <button onclick="invItems.splice(${i},1);renderInvLista();" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--suave);">✕</button>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
+        <div style="background:#f8f9fa;border-radius:6px;padding:5px;text-align:center;">
+          <p style="font-size:10px;color:var(--suave);">$ Compra</p>
+          <input type="number" value="${it.precioCompra||''}" placeholder="0" style="width:100%;border:none;background:transparent;text-align:center;font-size:13px;font-weight:600;outline:none;" onchange="invItems[${i}].precioCompra=parseFloat(this.value)||0;recalcMargen(${i});">
+        </div>
+        <div style="background:#f8f9fa;border-radius:6px;padding:5px;text-align:center;">
+          <p style="font-size:10px;color:var(--suave);">$ Venta</p>
+          <input type="number" value="${it.precioVenta||''}" placeholder="0" style="width:100%;border:none;background:transparent;text-align:center;font-size:13px;font-weight:600;outline:none;" onchange="invItems[${i}].precioVenta=parseFloat(this.value)||0;recalcMargen(${i});">
+        </div>
+        <div style="background:${it.margen>0?'#f0fff4':'#f8f9fa'};border-radius:6px;padding:5px;text-align:center;">
+          <p style="font-size:10px;color:var(--suave);">Margen</p>
+          <p id="margen-${i}" style="font-size:13px;font-weight:700;color:${parseFloat(it.margen)>0?'#27ae60':'var(--suave)'};">${it.margen?it.margen+'%':'—'}</p>
+        </div>
+      </div>
     </div>`).join('');
+}
+
+function recalcMargen(i){
+  const it=invItems[i];
+  if(it.precioCompra>0 && it.precioVenta>0){
+    it.margen=((it.precioVenta-it.precioCompra)/it.precioCompra*100).toFixed(1);
+  }
+  const el=document.getElementById(`margen-${i}`);
+  if(el) el.textContent=it.margen?it.margen+'%':'—';
 }
 
 async function exportarInventario(){
   if(!invItems.length){alert('No hay productos en tu inventario todavía');return;}
   const nombre=usuarioActual?.user_metadata?.full_name||usuarioActual?.email?.split('@')[0]||'operador';
   const fecha=new Date().toLocaleDateString('es-CL');
-  const filas=invItems.map(it=>[it.barcode,it.nombre,it.formato,it.unidad,it.cantidad]);
-  const ws=XLSX.utils.aoa_to_sheet([['Código','Producto','Formato','Unidad','Cantidad'],...filas]);
-  ws['!cols']=[{wch:18},{wch:35},{wch:15},{wch:12},{wch:12}];
+  const filas=invItems.map(it=>[
+    it.barcode||'',
+    it.nombre,
+    it.empaque||'Unidad',
+    it.formato||'',
+    it.unidad||'',
+    it.cantidad,
+    it.precioCompra||0,
+    it.precioVenta||0,
+    it.margen?it.margen+'%':'',
+    it.precioVenta&&it.cantidad ? (it.precioVenta*it.cantidad).toLocaleString('es-CL') : ''
+  ]);
+  const ws=XLSX.utils.aoa_to_sheet([
+    ['Código','Producto','Empaque','Formato','Unidad','Cantidad','$ Compra','$ Venta','Margen %','Total Venta'],
+    ...filas
+  ]);
+  ws['!cols']=[{wch:18},{wch:35},{wch:12},{wch:12},{wch:10},{wch:10},{wch:12},{wch:12},{wch:10},{wch:14}];
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'Inventario');
   XLSX.writeFile(wb,`inventario_${nombre.replace(/ /g,'_')}_${fecha.replace(/\//g,'-')}.xlsx`);
