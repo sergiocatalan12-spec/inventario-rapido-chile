@@ -188,6 +188,34 @@ input:focus, select:focus { border-color:var(--rojo); }
   </div>
 </div>
 
+<!-- MODAL PRECIOS -->
+<div id="modal-precios" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:1000;overflow-y:auto;">
+  <div style="background:white;margin:20px auto;max-width:500px;border-radius:16px;overflow:hidden;">
+    <div style="background:#1B2A4A;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;">
+      <h3 style="color:white;margin:0;">💰 Agregar precios</h3>
+      <button onclick="document.getElementById('modal-precios').style.display='none'" style="background:none;border:none;color:white;font-size:24px;cursor:pointer;">✕</button>
+    </div>
+    <div style="padding:16px;">
+      <!-- Foto factura -->
+      <div style="background:#FFF8E1;border:2px dashed #F39C12;border-radius:10px;padding:16px;margin-bottom:16px;text-align:center;">
+        <p style="font-weight:700;color:#E67E22;margin-bottom:8px;">📷 Foto de factura</p>
+        <p style="font-size:12px;color:#7F8C8D;margin-bottom:12px;">La IA lee los precios automáticamente</p>
+        <label style="cursor:pointer;">
+          <input type="file" id="factura-foto" accept="image/*" capture="environment" style="display:none;" onchange="procesarFactura(event)">
+          <div class="btn btn-rojo" style="display:inline-block;padding:10px 20px;">📷 Fotografiar factura</div>
+        </label>
+        <div id="factura-status" style="margin-top:10px;font-size:13px;"></div>
+      </div>
+
+      <!-- Tabla manual -->
+      <p style="font-size:13px;color:#7F8C8D;margin-bottom:10px;">O ingresa los precios manualmente:</p>
+      <div id="tabla-precios"></div>
+
+      <button class="btn btn-verde" style="width:100%;margin-top:16px;" onclick="guardarPrecios()">✅ Guardar precios y exportar Excel</button>
+    </div>
+  </div>
+</div>
+
 <!-- APP -->
 <div id="app-screen">
   <header>
@@ -401,7 +429,8 @@ input:focus, select:focus { border-color:var(--rojo); }
           <h3 style="margin:0;">Productos levantados <span id="inv-count" style="font-size:13px;color:var(--suave);font-weight:400;"></span></h3>
           <div style="display:flex;gap:8px;">
             <button class="btn btn-verde" style="padding:8px 12px;font-size:13px;margin:0;flex:1;" onclick="exportarInventario()">⬇️ Excel</button>
-            <button class="btn btn-azul" style="padding:8px 12px;font-size:13px;margin:0;flex:1;" onclick="completarLevantamiento()">🔗 Completar y enviar a ERP</button>
+            <button class="btn btn-azul" style="padding:8px 12px;font-size:13px;margin:0;flex:1;" onclick="abrirPrecios()">💰 Agregar precios</button>
+            <button class="btn" style="padding:8px 12px;font-size:13px;margin:0;flex:1;background:#8E44AD;" onclick="completarLevantamiento()">🔗 Enviar ERP</button>
           </div>
         </div>
         <div id="inv-lista"><p style="color:var(--suave);font-size:13px;text-align:center;padding:20px 0;">Aún no has agregado productos</p></div>
@@ -756,46 +785,11 @@ async function buscarParaInventario(){
       <div style="background:#f0f7f0;border:2px solid #27ae60;border-radius:10px;padding:14px;">
         <p style="font-weight:700;font-size:15px;margin-bottom:4px;">✅ ${producto.normalized_name}</p>
         <p style="font-size:12px;color:var(--suave);margin-bottom:12px;">${producto.format||''} ${producto.unit||''}</p>
-        
-        <label class="flabel">EMPAQUE</label>
-        <select id="inv-empaque" style="margin-bottom:10px;">
-          <option value="unidad">Unidad suelta</option>
-          <option value="pack2">Pack x2</option>
-          <option value="pack4">Pack x4</option>
-          <option value="pack6">Six pack x6</option>
-          <option value="pack12">Pack x12</option>
-          <option value="pack24">Caja x24</option>
-          <option value="pack48">Caja x48</option>
-          <option value="otro">Otro (escribir)</option>
-        </select>
-        <input type="text" id="inv-empaque-otro" placeholder="Ej: Bolsa x500g" style="display:none;margin-bottom:10px;">
-        
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;">
-          <div>
-            <label class="flabel">CANTIDAD</label>
-            <input type="number" id="inv-qty" placeholder="0" min="0" style="font-size:16px;font-weight:700;text-align:center;margin-bottom:0;">
-          </div>
-          <div>
-            <label class="flabel">$ COMPRA</label>
-            <input type="number" id="inv-precio-compra" placeholder="0" min="0" style="font-size:14px;text-align:center;margin-bottom:0;">
-          </div>
-          <div>
-            <label class="flabel">$ VENTA</label>
-            <input type="number" id="inv-precio-venta" placeholder="0" min="0" style="font-size:14px;text-align:center;margin-bottom:0;">
-          </div>
+        <div class="row" style="gap:8px;">
+          <input type="number" id="inv-qty" placeholder="Cantidad" min="0" style="font-size:20px;font-weight:700;text-align:center;flex:1;margin-bottom:0;" autofocus>
+          <button class="btn btn-verde" style="flex:1;margin:0;font-size:15px;" onclick="agregarAlInventario('${producto.id}','${(producto.normalized_name||'').replace(/'/g,"\\'")}','${producto.format||''}','${producto.unit||''}','${barcode}')">➕ Agregar</button>
         </div>
-        <div id="inv-margen" style="font-size:12px;color:var(--suave);text-align:center;margin-bottom:10px;min-height:16px;"></div>
-        <button class="btn btn-verde" style="margin:0;width:100%;" onclick="agregarAlInventario('${producto.id}','${(producto.normalized_name||'').replace(/'/g,"\\'")}','${producto.format||''}','${producto.unit||''}','${barcode}')">➕ Agregar al levantamiento</button>
       </div>`;
-
-    // Calcular margen en tiempo real
-    document.getElementById('inv-precio-compra').addEventListener('input', calcularMargen);
-    document.getElementById('inv-precio-venta').addEventListener('input', calcularMargen);
-    
-    // Mostrar campo otro empaque
-    document.getElementById('inv-empaque').addEventListener('change', function(){
-      document.getElementById('inv-empaque-otro').style.display = this.value==='otro' ? 'block' : 'none';
-    });
   } else {
     // No existe — ofrecer agregar nuevo
     res.innerHTML=`
@@ -811,41 +805,16 @@ async function buscarParaInventario(){
   }
 }
 
-function calcularMargen(){
-  const compra=parseFloat(document.getElementById('inv-precio-compra')?.value)||0;
-  const venta=parseFloat(document.getElementById('inv-precio-venta')?.value)||0;
-  const el=document.getElementById('inv-margen');
-  if(!el) return;
-  if(compra>0 && venta>0){
-    const margen=((venta-compra)/compra*100).toFixed(1);
-    const ganancia=venta-compra;
-    el.innerHTML=`<span style="color:${margen>0?'#27ae60':'#c0392b'};font-weight:700;">Margen: ${margen}% — Ganancia: $${ganancia.toLocaleString('es-CL')}</span>`;
-  } else {
-    el.innerHTML='';
-  }
-}
-
 function agregarAlInventario(id,nombre,formato,unidad,barcode){
   const qty=parseFloat(document.getElementById('inv-qty').value)||0;
-  const precioCompra=parseFloat(document.getElementById('inv-precio-compra')?.value)||0;
-  const precioVenta=parseFloat(document.getElementById('inv-precio-venta')?.value)||0;
-  const empaqueEl=document.getElementById('inv-empaque');
-  let empaque=empaqueEl?.value||'unidad';
-  if(empaque==='otro') empaque=document.getElementById('inv-empaque-otro')?.value||'unidad';
-  
-  const margen=precioCompra>0&&precioVenta>0 ? ((precioVenta-precioCompra)/precioCompra*100).toFixed(1) : 0;
-  
   const existe=invItems.find(i=>i.id===id);
   if(existe){ 
     existe.cantidad+=qty;
-    if(precioCompra) existe.precioCompra=precioCompra;
-    if(precioVenta) existe.precioVenta=precioVenta;
-    if(empaque!=='unidad') existe.empaque=empaque;
   } else { 
-    invItems.push({id,nombre,formato,unidad,barcode,cantidad:qty,precioCompra,precioVenta,empaque,margen}); 
+    invItems.push({id,nombre,formato,unidad,barcode,cantidad:qty,precioCompra:0,precioVenta:0,margen:0,empaque:'unidad'}); 
   }
   document.getElementById('inv-input').value='';
-  document.getElementById('inv-resultado').innerHTML='<div class="mok" style="margin-top:0;">✅ Agregado al inventario</div>';
+  document.getElementById('inv-resultado').innerHTML='<div class="mok" style="margin-top:0;">✅ Agregado — escanea el siguiente</div>';
   renderInvLista();
 }
 
@@ -1079,6 +1048,114 @@ async function cargarApiKeys(){
 async function toggleApiKey(id, activo){
   await supa.from('api_clients').update({activo:!activo}).eq('id',id);
   cargarApiKeys();
+}
+
+function abrirPrecios(){
+  if(!invItems.length){alert('No hay productos en el levantamiento');return;}
+  // Renderizar tabla de precios
+  const tabla=document.getElementById('tabla-precios');
+  tabla.innerHTML=invItems.map((it,i)=>`
+    <div style="padding:10px 0;border-bottom:1px solid #eee;">
+      <p style="font-weight:600;font-size:13px;margin-bottom:6px;">${it.nombre} <span style="color:#7F8C8D;font-weight:400;">(x${it.cantidad})</span></p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div>
+          <label style="font-size:10px;color:#7F8C8D;font-weight:700;letter-spacing:1px;">$ COMPRA</label>
+          <input type="number" id="pc-${i}" value="${it.precioCompra||''}" placeholder="0" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:14px;" oninput="actualizarMargenTabla(${i})">
+        </div>
+        <div>
+          <label style="font-size:10px;color:#7F8C8D;font-weight:700;letter-spacing:1px;">$ VENTA</label>
+          <input type="number" id="pv-${i}" value="${it.precioVenta||''}" placeholder="0" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:14px;" oninput="actualizarMargenTabla(${i})">
+        </div>
+      </div>
+      <p id="mt-${i}" style="font-size:11px;color:#27ae60;margin-top:4px;min-height:14px;">${it.precioCompra&&it.precioVenta?'Margen: '+((it.precioVenta-it.precioCompra)/it.precioCompra*100).toFixed(1)+'%':''}</p>
+    </div>`).join('');
+  document.getElementById('modal-precios').style.display='block';
+}
+
+function actualizarMargenTabla(i){
+  const c=parseFloat(document.getElementById(`pc-${i}`)?.value)||0;
+  const v=parseFloat(document.getElementById(`pv-${i}`)?.value)||0;
+  const el=document.getElementById(`mt-${i}`);
+  if(el && c>0 && v>0){
+    const m=((v-c)/c*100).toFixed(1);
+    el.textContent=`Margen: ${m}% — Ganancia: $${(v-c).toLocaleString('es-CL')} por unidad`;
+    el.style.color=m>0?'#27ae60':'#c0392b';
+  } else if(el){ el.textContent=''; }
+}
+
+async function procesarFactura(event){
+  const file=event.target.files[0];
+  if(!file) return;
+  const status=document.getElementById('factura-status');
+  status.innerHTML='<span style="color:#E67E22;">⏳ Analizando factura con IA...</span>';
+  
+  const reader=new FileReader();
+  reader.onload=async function(e){
+    const base64=e.target.result.split(',')[1];
+    try{
+      const resp=await fetch('/api/analizar',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          imagen:base64,
+          tipo:'factura',
+          productos:invItems.map(it=>it.nombre),
+          prompt:`Analiza esta factura o boleta. Extrae los productos y sus precios unitarios de compra. 
+          Devuelve SOLO un JSON array con este formato: [{"nombre":"...","precio_compra":0}]
+          Intenta hacer coincidir con estos productos del inventario: ${invItems.map(it=>it.nombre).join(', ')}`
+        })
+      });
+      const data=await resp.json();
+      // Parsear respuesta IA
+      let precios=[];
+      try{ 
+        const txt=data.content?.[0]?.text||'[]';
+        const match=txt.match(/\[[\s\S]*\]/);
+        if(match) precios=JSON.parse(match[0]);
+      }catch(e){}
+      
+      // Aplicar precios a los items
+      let aplicados=0;
+      precios.forEach(p=>{
+        invItems.forEach((it,i)=>{
+          if(it.nombre.toLowerCase().includes(p.nombre.toLowerCase().substring(0,6)) || 
+             p.nombre.toLowerCase().includes(it.nombre.toLowerCase().substring(0,6))){
+            it.precioCompra=p.precio_compra;
+            const input=document.getElementById(`pc-${i}`);
+            if(input) input.value=p.precio_compra;
+            actualizarMargenTabla(i);
+            aplicados++;
+          }
+        });
+      });
+      status.innerHTML=`<span style="color:#27ae60;">✅ ${aplicados} precios detectados y aplicados</span>`;
+    }catch(e){
+      status.innerHTML='<span style="color:#c0392b;">❌ Error al analizar — ingresa precios manual</span>';
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function guardarPrecios(){
+  invItems.forEach((it,i)=>{
+    it.precioCompra=parseFloat(document.getElementById(`pc-${i}`)?.value)||0;
+    it.precioVenta=parseFloat(document.getElementById(`pv-${i}`)?.value)||0;
+    if(it.precioCompra>0&&it.precioVenta>0){
+      it.margen=((it.precioVenta-it.precioCompra)/it.precioCompra*100).toFixed(1);
+    }
+  });
+  document.getElementById('modal-precios').style.display='none';
+  renderInvLista();
+  exportarInventario();
+}
+
+function recalcMargen(i){
+  const it=invItems[i];
+  if(it.precioCompra>0 && it.precioVenta>0){
+    it.margen=((it.precioVenta-it.precioCompra)/it.precioCompra*100).toFixed(1);
+  }
+  const el=document.getElementById(`margen-${i}`);
+  if(el) el.textContent=it.margen?it.margen+'%':'—';
 }
 
 // ── BUSCAR ────────────────────────────────────────
