@@ -229,6 +229,7 @@ input:focus, select:focus { border-color:var(--rojo); }
     <div class="tab" id="tab-nav-inventario" style="display:none;" onclick="showTab('inventario',this)">📋 Mi inventario</div>
     <div class="tab" id="tab-nav-agregar" onclick="showTab('agregar',this)">➕ Agregar</div>
     <div class="tab" id="tab-nav-exportar" onclick="showTab('exportar',this)">📊 Exportar</div>
+    <div class="tab" id="tab-nav-apikeys" style="display:none;" onclick="showTab('apikeys',this)">🔑 API Keys</div>
   </div>
 
   <div id="scan-modal">
@@ -366,6 +367,35 @@ input:focus, select:focus { border-color:var(--rojo); }
           </div>
         </div>
         <div id="inv-lista"><p style="color:var(--suave);font-size:13px;text-align:center;padding:20px 0;">Aún no has agregado productos</p></div>
+      </div>
+    </div>
+
+    <!-- API KEYS -->
+    <div class="section" id="tab-apikeys">
+      <div class="card">
+        <h2 style="margin-bottom:4px;">🔑 Clientes API</h2>
+        <p style="font-size:13px;color:var(--suave);margin-bottom:16px;">Genera llaves de acceso para ERPs que se conecten a ICH</p>
+        <div style="display:flex;gap:8px;margin-bottom:16px;">
+          <input type="text" id="api-nombre" placeholder="Nombre de la ERP (ej: Bsale, Defontana...)" style="margin-bottom:0;flex:1;">
+          <button class="btn btn-azul" style="margin:0;padding:0 16px;white-space:nowrap;" onclick="crearApiKey()"><span id="api-btn-txt">➕ Crear</span></button>
+        </div>
+        <div id="api-msg"></div>
+      </div>
+      <div class="card" style="padding-top:12px;">
+        <h3 style="margin-bottom:12px;">ERPs conectadas</h3>
+        <div id="api-lista"><p style="color:var(--suave);font-size:13px;text-align:center;padding:16px 0;">Cargando...</p></div>
+      </div>
+      <div class="card" style="background:#f0f7ff;border:1px solid #b3d4f5;">
+        <h3 style="margin-bottom:8px;">📖 Cómo conectarse</h3>
+        <p style="font-size:12px;color:var(--suave);margin-bottom:8px;">La ERP hace una llamada GET con su API key:</p>
+        <div style="background:#1B2A4A;color:#A8C0D6;padding:12px;border-radius:8px;font-family:monospace;font-size:11px;line-height:1.6;">
+          GET https://inventario-rapido-chile.vercel.app/api/inventario<br>
+          Header: x-api-key: SU_API_KEY<br><br>
+          # Consultar levantamiento específico:<br>
+          ?levantamiento_id=UUID_DEL_LEVANTAMIENTO<br><br>
+          # Listar todos los levantamientos completados:<br>
+          (sin parámetros)
+        </div>
       </div>
     </div>
 
@@ -510,15 +540,14 @@ async function mostrarApp(user){
 
   // Adaptar interfaz según rol
   if(rol==='operador'){
-    // Operador: ve Buscar, Inventario y Exportar — NO editar catálogo
     document.getElementById('tab-nav-agregar').style.display='none';
     document.getElementById('tab-nav-inventario').style.display='flex';
-    // Mostrar tab inventario por defecto
+    document.getElementById('tab-nav-apikeys').style.display='none';
     showTab('inventario', document.getElementById('tab-nav-inventario'));
   } else {
-    // Editor: interfaz completa
     document.getElementById('tab-nav-agregar').style.display='flex';
     document.getElementById('tab-nav-inventario').style.display='none';
+    document.getElementById('tab-nav-apikeys').style.display='flex';
   }
 
   cargarContador();
@@ -539,6 +568,7 @@ function showTab(tab,el){
   el.classList.add('active');
   document.getElementById('tab-'+tab).classList.add('active');
   if(tab==='exportar') loadStats();
+  if(tab==='apikeys') cargarApiKeys();
 }
 
 // ── CONTADOR ──────────────────────────────────────
@@ -723,6 +753,51 @@ async function completarLevantamiento(){
     </div>`;
   invItems=[];
   document.getElementById('inv-count').textContent='';
+}
+
+// ── API KEYS ──────────────────────────────────────
+async function crearApiKey(){
+  const nombre=document.getElementById('api-nombre').value.trim();
+  if(!nombre){document.getElementById('api-msg').innerHTML='<div class="merr">❌ Ingresa el nombre de la ERP</div>';return;}
+  setBtn('api-btn-txt',true,'Creando...');
+  const {data,error}=await supa.from('api_clients').insert({nombre}).select().single();
+  if(error){
+    document.getElementById('api-msg').innerHTML=`<div class="merr">❌ ${error.message}</div>`;
+  } else {
+    document.getElementById('api-nombre').value='';
+    document.getElementById('api-msg').innerHTML=`
+      <div class="mok" style="word-break:break-all;">
+        ✅ API Key creada para <strong>${data.nombre}</strong>:<br>
+        <span style="font-family:monospace;font-size:12px;background:#e8f5e9;padding:4px 8px;border-radius:4px;display:block;margin-top:6px;">${data.api_key}</span>
+        <span style="font-size:11px;color:var(--suave);">Cópiala ahora — no se volverá a mostrar completa</span>
+      </div>`;
+    cargarApiKeys();
+  }
+  setBtn('api-btn-txt',false,'➕ Crear');
+}
+
+async function cargarApiKeys(){
+  const lista=document.getElementById('api-lista');
+  if(!lista) return;
+  const {data}=await supa.from('api_clients').select('id,nombre,api_key,activo,created_at').order('created_at',{ascending:false});
+  if(!data||!data.length){lista.innerHTML='<p style="color:var(--suave);font-size:13px;text-align:center;padding:16px 0;">No hay ERPs conectadas aún</p>';return;}
+  lista.innerHTML=data.map(c=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--borde);">
+      <div style="flex:1;">
+        <p style="font-weight:700;font-size:14px;margin-bottom:3px;">${c.nombre}</p>
+        <p style="font-family:monospace;font-size:11px;color:var(--suave);">${c.api_key.substring(0,16)}••••••••••••••••</p>
+        <p style="font-size:11px;color:var(--suave);">${new Date(c.created_at).toLocaleDateString('es-CL')}</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+        <span style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;background:${c.activo?'#e8f5e9':'#fdecea'};color:${c.activo?'#27ae60':'#c0392b'};">${c.activo?'Activa':'Inactiva'}</span>
+        <button onclick="toggleApiKey('${c.id}',${c.activo})" style="font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--borde);background:white;cursor:pointer;color:${c.activo?'#c0392b':'#27ae60'};">${c.activo?'Desactivar':'Activar'}</button>
+      </div>
+    </div>`).join('');
+}
+
+async function toggleApiKey(id, activo){
+  await supa.from('api_clients').update({activo:!activo}).eq('id',id);
+  cargarApiKeys();
 }
 
 // ── BUSCAR ────────────────────────────────────────
