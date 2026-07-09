@@ -534,8 +534,10 @@ async function mostrarApp(user){
   document.getElementById('user-info').textContent=nombre;
 
   // Cargar rol desde tabla users
-  const {data:udata}=await supa.from('users').select('rol').eq('id',user.id).single();
+  const {data:udata, error:uerr}=await supa.from('users').select('rol').eq('id',user.id).single();
+  console.log('ROL DATA:', udata, 'ERROR:', uerr);
   const rol=udata?.rol || user.user_metadata?.rol || 'operador';
+  console.log('ROL FINAL:', rol);
   usuarioActual.rol=rol;
 
   // Adaptar interfaz según rol
