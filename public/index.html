@@ -147,10 +147,13 @@ input:focus, select:focus { border-color:var(--rojo); }
     <!-- ENTRAR -->
     <div id="login-entrar">
       <label class="flabel">Email</label>
-      <input type="email" id="login-email" placeholder="tu@email.com" inputmode="email" autocomplete="email">
+      <input type="email" id="login-email" placeholder="tu@email.com" inputmode="email" autocomplete="username">
       <label class="flabel">Contraseña</label>
-      <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')entrar()">
-      <button class="btn btn-rojo" onclick="entrar()"><span id="login-btn-txt">Entrar</span></button>
+      <div style="position:relative;">
+        <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')entrar()" style="padding-right:44px;margin-bottom:0;">
+        <span onclick="togglePass('login-pass',this)" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:18px;user-select:none;">👁️</span>
+      </div>
+      <button class="btn btn-rojo" onclick="entrar()" style="margin-top:12px;"><span id="login-btn-txt">Entrar</span></button>
       <div style="text-align:center;margin-top:10px;">
         <span onclick="recuperar()" style="font-size:13px;color:var(--azul);cursor:pointer;text-decoration:underline;">¿Olvidaste tu contraseña?</span>
       </div>
@@ -160,11 +163,14 @@ input:focus, select:focus { border-color:var(--rojo); }
     <!-- REGISTRARSE -->
     <div id="login-registrar" style="display:none;">
       <label class="flabel">Nombre completo</label>
-      <input type="text" id="reg-nombre" placeholder="Tu nombre">
+      <input type="text" id="reg-nombre" placeholder="Tu nombre" autocomplete="name">
       <label class="flabel">Email</label>
-      <input type="email" id="reg-email" placeholder="tu@email.com" inputmode="email">
+      <input type="email" id="reg-email" placeholder="tu@email.com" inputmode="email" autocomplete="username">
       <label class="flabel">Contraseña</label>
-      <input type="password" id="reg-pass" placeholder="Mínimo 6 caracteres">
+      <div style="position:relative;">
+        <input type="password" id="reg-pass" placeholder="Mínimo 6 caracteres" autocomplete="new-password" style="padding-right:44px;margin-bottom:0;">
+        <span onclick="togglePass('reg-pass',this)" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:18px;user-select:none;">👁️</span>
+      </div>
       <label class="flabel">¿CÓMO VAS A USAR LA APP?</label>
       <div style="display:flex;gap:8px;margin-bottom:12px;">
         <div id="rol-operador-btn" onclick="selRol('operador')" style="flex:1;padding:11px 6px;border:2px solid var(--azul);border-radius:10px;text-align:center;cursor:pointer;background:var(--azul);color:white;font-size:12px;font-weight:700;">
@@ -415,6 +421,12 @@ async function entrar(){
   } else {
     mostrarApp(data.user);
   }
+}
+
+function togglePass(id, btn){
+  const inp=document.getElementById(id);
+  if(inp.type==='password'){inp.type='text';btn.textContent='🙈';}
+  else{inp.type='password';btn.textContent='👁️';}
 }
 
 function selRol(rol){
