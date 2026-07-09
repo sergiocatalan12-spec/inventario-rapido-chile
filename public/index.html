@@ -334,14 +334,37 @@ input:focus, select:focus { border-color:var(--rojo); }
         <label class="flabel">Unidad de medida <span style="color:var(--rojo)">*</span></label>
         <select id="a-unit" style="margin-bottom:16px;">
           <option value="">Selecciona unidad</option>
-          <option value="unidad">Unidad</option>
-          <option value="kg">Kilogramo (kg)</option>
-          <option value="g">Gramo (g)</option>
-          <option value="litro">Litro (L)</option>
-          <option value="ml">Mililitro (ml)</option>
-          <option value="pack">Pack</option>
-          <option value="caja">Caja</option>
-          <option value="bolsa">Bolsa</option>
+          <optgroup label="── Cantidad ──">
+            <option value="unidad">Unidad</option>
+            <option value="par">Par</option>
+            <option value="docena">Docena</option>
+            <option value="pack">Pack</option>
+            <option value="caja">Caja</option>
+            <option value="bolsa">Bolsa</option>
+            <option value="bandeja">Bandeja</option>
+            <option value="rollo">Rollo</option>
+            <option value="sobre">Sobre</option>
+            <option value="blister">Blíster</option>
+          </optgroup>
+          <optgroup label="── Peso ──">
+            <option value="kg">Kilogramo (kg)</option>
+            <option value="g">Gramo (g)</option>
+            <option value="mg">Miligramo (mg)</option>
+            <option value="lb">Libra (lb)</option>
+            <option value="ton">Tonelada</option>
+          </optgroup>
+          <optgroup label="── Volumen ──">
+            <option value="L">Litro (L)</option>
+            <option value="ml">Mililitro (ml)</option>
+            <option value="cl">Centilitro (cl)</option>
+            <option value="m3">Metro cúbico (m³)</option>
+          </optgroup>
+          <optgroup label="── Longitud ──">
+            <option value="m">Metro (m)</option>
+            <option value="cm">Centímetro (cm)</option>
+            <option value="mm">Milímetro (mm)</option>
+            <option value="m2">Metro cuadrado (m²)</option>
+          </optgroup>
         </select>
 
         <button class="btn btn-verde" onclick="guardar()"><span id="g-txt">✓ Guardar producto</span></button>
