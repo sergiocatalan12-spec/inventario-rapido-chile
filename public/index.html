@@ -419,6 +419,7 @@ async function entrar(){
     document.getElementById('login-msg').innerHTML=`<div class="merr">❌ ${error.message==='Invalid login credentials'?'Email o contraseña incorrectos':error.message}</div>`;
     setBtn('login-btn-txt',false,'Entrar');
   } else {
+    setBtn('login-btn-txt',false,'Entrar');
     mostrarApp(data.user);
   }
 }
@@ -483,6 +484,11 @@ async function recuperar(){
 async function salir(){
   await supa.auth.signOut();
   usuarioActual=null;
+  // Resetear campos y spinner
+  setBtn('login-btn-txt',false,'Entrar');
+  document.getElementById('login-email').value='';
+  document.getElementById('login-pass').value='';
+  document.getElementById('login-msg').innerHTML='';
   document.getElementById('app-screen').style.display='none';
   document.getElementById('login-screen').style.display='flex';
 }
