@@ -235,15 +235,13 @@ input:focus, select:focus { border-color:var(--rojo); }
       <option value="admin" id="nav-opt-admin" style="display:none;">⚙️ Admin</option>
     </select>
     <span style="color:white;font-size:18px;pointer-events:none;">▾</span>
-    <!-- tabs ocultos para mantener compatibilidad -->
-    <div style="display:none;">
-      <div class="tab active" id="tab-nav-buscar"></div>
-      <div class="tab" id="tab-nav-inventario"></div>
-      <div class="tab" id="tab-nav-agregar"></div>
-      <div class="tab" id="tab-nav-exportar"></div>
-      <div class="tab" id="tab-nav-apikeys"></div>
-      <div class="tab" id="tab-nav-admin"></div>
-    </div>
+    <!-- tabs ocultos IDs para compatibilidad con secciones -->
+    <span id="tab-nav-buscar" style="display:none;"></span>
+    <span id="tab-nav-inventario" style="display:none;"></span>
+    <span id="tab-nav-agregar" style="display:none;"></span>
+    <span id="tab-nav-exportar" style="display:none;"></span>
+    <span id="tab-nav-apikeys" style="display:none;"></span>
+    <span id="tab-nav-admin" style="display:none;"></span>
   </div>
 
   <div id="scan-modal">
