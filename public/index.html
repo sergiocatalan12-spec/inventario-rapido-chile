@@ -165,6 +165,16 @@ input:focus, select:focus { border-color:var(--rojo); }
       <input type="email" id="reg-email" placeholder="tu@email.com" inputmode="email">
       <label class="flabel">Contraseña</label>
       <input type="password" id="reg-pass" placeholder="Mínimo 6 caracteres">
+      <label class="flabel">¿CÓMO VAS A USAR LA APP?</label>
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <div id="rol-operador-btn" onclick="selRol('operador')" style="flex:1;padding:11px 6px;border:2px solid var(--azul);border-radius:10px;text-align:center;cursor:pointer;background:var(--azul);color:white;font-size:12px;font-weight:700;">
+          📦 Levantar inventario
+        </div>
+        <div id="rol-editor-btn" onclick="selRol('editor')" style="flex:1;padding:11px 6px;border:2px solid var(--borde);border-radius:10px;text-align:center;cursor:pointer;background:white;color:var(--suave);font-size:12px;font-weight:700;">
+          ✏️ Editar catálogo
+        </div>
+      </div>
+      <input type="hidden" id="reg-rol" value="operador">
       <button class="btn btn-verde" onclick="registrar()"><span id="reg-btn-txt">Crear cuenta</span></button>
       <div id="reg-msg"></div>
     </div>
@@ -209,9 +219,10 @@ input:focus, select:focus { border-color:var(--rojo); }
   </header>
 
   <div class="tabs">
-    <div class="tab active" onclick="showTab('buscar',this)">🔍 Buscar</div>
-    <div class="tab" onclick="showTab('agregar',this)">➕ Agregar</div>
-    <div class="tab" onclick="showTab('exportar',this)">📊 Exportar</div>
+    <div class="tab active" id="tab-nav-buscar" onclick="showTab('buscar',this)">🔍 Buscar</div>
+    <div class="tab" id="tab-nav-inventario" style="display:none;" onclick="showTab('inventario',this)">📋 Mi inventario</div>
+    <div class="tab" id="tab-nav-agregar" onclick="showTab('agregar',this)">➕ Agregar</div>
+    <div class="tab" id="tab-nav-exportar" onclick="showTab('exportar',this)">📊 Exportar</div>
   </div>
 
   <div id="scan-modal">
@@ -328,6 +339,27 @@ input:focus, select:focus { border-color:var(--rojo); }
       </div>
     </div>
 
+    <!-- INVENTARIO OPERADOR -->
+    <div class="section" id="tab-inventario">
+      <div class="card">
+        <h2 style="margin-bottom:4px;">📋 Mi levantamiento</h2>
+        <p style="font-size:13px;color:var(--suave);margin-bottom:14px;">Escanea o busca productos y agrega la cantidad</p>
+        <div class="row">
+          <input type="text" id="inv-input" placeholder="Código, QR o nombre..." autocomplete="off" onkeydown="if(event.key==='Enter')buscarParaInventario()" oninput="onInvInput(this.value)">
+          <button class="btn btn-rojo btn-sm" style="width:auto;" onclick="buscarParaInventario()"><span>Buscar</span></button>
+        </div>
+        <button class="btn btn-azul" onclick="abrirScanInventario()">📷 Escanear código</button>
+        <div id="inv-resultado" style="margin-top:12px;"></div>
+      </div>
+      <div class="card" style="padding-top:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <h3 style="margin:0;">Productos levantados <span id="inv-count" style="font-size:13px;color:var(--suave);font-weight:400;"></span></h3>
+          <button class="btn btn-verde" style="padding:8px 14px;font-size:13px;margin:0;" onclick="exportarInventario()">⬇️ Exportar Excel</button>
+        </div>
+        <div id="inv-lista"><p style="color:var(--suave);font-size:13px;text-align:center;padding:20px 0;">Aún no has agregado productos</p></div>
+      </div>
+    </div>
+
     <!-- EXPORTAR -->
     <div class="section" id="tab-exportar">
       <div class="card" style="text-align:center;">
@@ -385,18 +417,36 @@ async function entrar(){
   }
 }
 
+function selRol(rol){
+  document.getElementById('reg-rol').value=rol;
+  const op=document.getElementById('rol-operador-btn');
+  const ed=document.getElementById('rol-editor-btn');
+  if(rol==='operador'){
+    op.style.background='var(--azul)';op.style.color='white';op.style.borderColor='var(--azul)';
+    ed.style.background='white';ed.style.color='var(--suave)';ed.style.borderColor='var(--borde)';
+  } else {
+    ed.style.background='var(--azul)';ed.style.color='white';ed.style.borderColor='var(--azul)';
+    op.style.background='white';op.style.color='var(--suave)';op.style.borderColor='var(--borde)';
+  }
+}
+
 async function registrar(){
   const nombre=document.getElementById('reg-nombre').value.trim();
   const email=document.getElementById('reg-email').value.trim();
   const pass=document.getElementById('reg-pass').value;
+  const rol=document.getElementById('reg-rol').value||'operador';
   if(!nombre||!email||!pass){document.getElementById('reg-msg').innerHTML='<div class="merr">❌ Completa todos los campos</div>';return;}
   if(pass.length<6){document.getElementById('reg-msg').innerHTML='<div class="merr">❌ La contraseña debe tener al menos 6 caracteres</div>';return;}
   setBtn('reg-btn-txt',true,'Creando cuenta...');
-  const {data,error}=await supa.auth.signUp({email,password:pass,options:{data:{full_name:nombre}}});
+  const {data,error}=await supa.auth.signUp({email,password:pass,options:{data:{full_name:nombre,rol:rol}}});
   if(error){
     document.getElementById('reg-msg').innerHTML=`<div class="merr">❌ ${error.message}</div>`;
     setBtn('reg-btn-txt',false,'Crear cuenta');
   } else {
+    // Guardar rol en tabla users
+    if(data.user){
+      await supa.from('users').upsert({id:data.user.id,email:email,full_name:nombre,rol:rol});
+    }
     document.getElementById('reg-msg').innerHTML='<div class="mok">✅ Cuenta creada. Revisa tu email para confirmar.</div>';
     setBtn('reg-btn-txt',false,'Crear cuenta');
   }
@@ -425,12 +475,31 @@ async function salir(){
   document.getElementById('login-screen').style.display='flex';
 }
 
-function mostrarApp(user){
+async function mostrarApp(user){
   usuarioActual=user;
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app-screen').style.display='block';
   const nombre=user.user_metadata?.full_name||user.email.split('@')[0];
   document.getElementById('user-info').textContent=nombre;
+
+  // Cargar rol desde tabla users
+  const {data:udata}=await supa.from('users').select('rol').eq('id',user.id).single();
+  const rol=udata?.rol || user.user_metadata?.rol || 'operador';
+  usuarioActual.rol=rol;
+
+  // Adaptar interfaz según rol
+  if(rol==='operador'){
+    // Operador: ve Buscar, Inventario y Exportar — NO editar catálogo
+    document.getElementById('tab-nav-agregar').style.display='none';
+    document.getElementById('tab-nav-inventario').style.display='flex';
+    // Mostrar tab inventario por defecto
+    showTab('inventario', document.getElementById('tab-nav-inventario'));
+  } else {
+    // Editor: interfaz completa
+    document.getElementById('tab-nav-agregar').style.display='flex';
+    document.getElementById('tab-nav-inventario').style.display='none';
+  }
+
   cargarContador();
 }
 
@@ -473,6 +542,126 @@ function onBuscarInput(val){
       }
     },300);
   }
+}
+
+// ── INVENTARIO OPERADOR ───────────────────────────
+let invItems=[]; // [{id, nombre, formato, unidad, barcode, cantidad}]
+
+let invTimer=null;
+function onInvInput(val){
+  clearTimeout(invTimer);
+  if(val.trim().length>=6){
+    invTimer=setTimeout(()=>{ if(document.getElementById('inv-input').value.trim()===val.trim()) buscarParaInventario(); },300);
+  }
+}
+
+async function abrirScanInventario(){
+  // Reutiliza el mismo escáner pero al leer pone el código en inv-input
+  window._scanTarget='inventario';
+  abrirScan();
+}
+
+async function buscarParaInventario(){
+  const q=document.getElementById('inv-input').value.trim();
+  if(!q) return;
+  const res=document.getElementById('inv-resultado');
+  res.innerHTML='<p style="color:var(--suave);font-size:13px;">Buscando...</p>';
+
+  // Buscar por barcode primero
+  let {data}=await supa.from('barcodes').select('gtin,products(id,normalized_name,format,unit)').eq('gtin',q).maybeSingle();
+  let producto=data?.products?data.products:null;
+  let barcode=data?.gtin||q;
+
+  // Si no encontró, buscar por nombre
+  if(!producto){
+    const {data:d2}=await supa.from('products').select('id,normalized_name,format,unit').ilike('normalized_name','%'+q+'%').eq('status','aprobado').limit(1).maybeSingle();
+    producto=d2;
+  }
+
+  if(producto){
+    res.innerHTML=`
+      <div style="background:#f0f7f0;border:2px solid #27ae60;border-radius:10px;padding:14px;">
+        <p style="font-weight:700;font-size:15px;margin-bottom:8px;">✅ ${producto.normalized_name}</p>
+        <p style="font-size:12px;color:var(--suave);margin-bottom:12px;">${producto.format||''} ${producto.unit||''}</p>
+        <label class="flabel">CANTIDAD</label>
+        <div class="row" style="gap:8px;">
+          <input type="number" id="inv-qty" placeholder="0" min="0" style="font-size:18px;font-weight:700;text-align:center;width:120px;">
+          <button class="btn btn-verde" style="flex:1;margin:0;" onclick="agregarAlInventario('${producto.id}','${(producto.normalized_name||'').replace(/'/g,"\\'")}','${producto.format||''}','${producto.unit||''}','${barcode}')">➕ Agregar</button>
+        </div>
+      </div>`;
+  } else {
+    // No existe — ofrecer agregar nuevo
+    res.innerHTML=`
+      <div style="background:#fff8e1;border:2px solid #f39c12;border-radius:10px;padding:14px;">
+        <p style="font-weight:700;margin-bottom:6px;">⚠️ Producto no encontrado</p>
+        <p style="font-size:13px;color:var(--suave);margin-bottom:12px;">¿Quieres agregarlo al catálogo?</p>
+        <input type="text" id="inv-nuevo-nombre" placeholder="Nombre del producto" style="margin-bottom:8px;">
+        <div class="row" style="gap:8px;">
+          <input type="number" id="inv-nuevo-qty" placeholder="Cantidad" min="0" style="text-align:center;">
+          <button class="btn btn-verde" style="flex:1;margin:0;" onclick="agregarNuevoProductoInventario('${q}')">✓ Guardar</button>
+        </div>
+      </div>`;
+  }
+}
+
+function agregarAlInventario(id,nombre,formato,unidad,barcode){
+  const qty=parseFloat(document.getElementById('inv-qty').value)||0;
+  // Si ya existe el producto, sumar cantidad
+  const existe=invItems.find(i=>i.id===id);
+  if(existe){ existe.cantidad+=qty; } else { invItems.push({id,nombre,formato,unidad,barcode,cantidad:qty}); }
+  document.getElementById('inv-input').value='';
+  document.getElementById('inv-resultado').innerHTML='<div class="mok" style="margin-top:0;">✅ Agregado al inventario</div>';
+  renderInvLista();
+}
+
+async function agregarNuevoProductoInventario(barcode){
+  const nombre=document.getElementById('inv-nuevo-nombre').value.trim();
+  const qty=parseFloat(document.getElementById('inv-nuevo-qty').value)||0;
+  if(!nombre){alert('Ingresa el nombre del producto');return;}
+
+  // Guardar en base de datos via RPC
+  const resp=await fetch(`${SB_URL}/rest/v1/rpc/guardar_producto`,{
+    method:'POST',headers:{...H,'Content-Type':'application/json'},
+    body:JSON.stringify({p_nombre:nombre,p_formato:'',p_unidad:'unidad',p_barcode:barcode})
+  });
+  const result=await resp.json();
+  if(result.success){
+    invItems.push({id:result.product_id,nombre,formato:'',unidad:'unidad',barcode,cantidad:qty});
+    document.getElementById('inv-input').value='';
+    document.getElementById('inv-resultado').innerHTML='<div class="mok" style="margin-top:0;">✅ Producto nuevo guardado y agregado</div>';
+    renderInvLista();
+  }
+}
+
+function renderInvLista(){
+  const lista=document.getElementById('inv-lista');
+  const count=document.getElementById('inv-count');
+  if(!invItems.length){
+    lista.innerHTML='<p style="color:var(--suave);font-size:13px;text-align:center;padding:20px 0;">Aún no has agregado productos</p>';
+    count.textContent='';return;
+  }
+  count.textContent=`(${invItems.length})`;
+  lista.innerHTML=invItems.map((it,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--borde);">
+      <div style="flex:1;">
+        <p style="font-weight:600;font-size:14px;margin-bottom:2px;">${it.nombre}</p>
+        <p style="font-size:12px;color:var(--suave);">${it.formato} ${it.unidad}</p>
+      </div>
+      <input type="number" value="${it.cantidad}" min="0" style="width:70px;text-align:center;font-weight:700;font-size:16px;padding:6px;" onchange="invItems[${i}].cantidad=parseFloat(this.value)||0">
+      <button onclick="invItems.splice(${i},1);renderInvLista();" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--suave);">✕</button>
+    </div>`).join('');
+}
+
+async function exportarInventario(){
+  if(!invItems.length){alert('No hay productos en tu inventario todavía');return;}
+  const nombre=usuarioActual?.user_metadata?.full_name||usuarioActual?.email?.split('@')[0]||'operador';
+  const fecha=new Date().toLocaleDateString('es-CL');
+  const filas=invItems.map(it=>[it.barcode,it.nombre,it.formato,it.unidad,it.cantidad]);
+  const ws=XLSX.utils.aoa_to_sheet([['Código','Producto','Formato','Unidad','Cantidad'],...filas]);
+  ws['!cols']=[{wch:18},{wch:35},{wch:15},{wch:12},{wch:12}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Inventario');
+  XLSX.writeFile(wb,`inventario_${nombre.replace(/ /g,'_')}_${fecha.replace(/\//g,'-')}.xlsx`);
 }
 
 // ── BUSCAR ────────────────────────────────────────
