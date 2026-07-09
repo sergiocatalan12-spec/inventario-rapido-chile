@@ -673,19 +673,14 @@ async function guardar(){
   setBtn('g-txt',true,'Guardando...');
   document.getElementById('a-msg').innerHTML='';
   try{
-    // 1 sola llamada: insertar producto
-    const pr=await fetch(`${SB_URL}/rest/v1/products`,{
-      method:'POST',headers:{...H,'Prefer':'return=representation'},
-      body:JSON.stringify({normalized_name:nombre,format:formato,unit:unidad,status:'aprobado'})
-    });
-    if(!pr.ok) throw new Error((await pr.json()).message||'Error al guardar');
-    const [prod]=await pr.json();
-    // 2da llamada: insertar barcode con on conflict ignore (si ya existe no falla)
-    await fetch(`${SB_URL}/rest/v1/barcodes`,{
+    // 1 SOLA llamada RPC — producto + barcode en un round-trip
+    const resp=await fetch(`${SB_URL}/rest/v1/rpc/guardar_producto`,{
       method:'POST',
-      headers:{...H,'Prefer':'resolution=ignore-duplicates'},
-      body:JSON.stringify({gtin:barcode,product_id:prod.id})
+      headers:{...H,'Content-Type':'application/json'},
+      body:JSON.stringify({p_nombre:nombre, p_formato:formato, p_unidad:unidad, p_barcode:barcode||''})
     });
+    const result=await resp.json();
+    if(!result.success) throw new Error(result.error||'Error al guardar');
     document.getElementById('a-msg').innerHTML='<div class="mok">✅ Producto guardado y aprobado correctamente</div>';
     limpiar();
     cargarContador();
