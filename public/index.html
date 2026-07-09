@@ -229,7 +229,7 @@ input:focus, select:focus { border-color:var(--rojo); }
     <div class="section active" id="tab-buscar">
       <div class="card">
         <div class="row">
-          <input type="text" id="b-input" placeholder="Código o nombre del producto..." inputmode="numeric" autocomplete="off" onkeydown="if(event.key==='Enter')buscarCodigo()" oninput="onBuscarInput(this.value)">
+          <input type="text" id="b-input" placeholder="Código, QR o nombre del producto..." autocomplete="off" onkeydown="if(event.key==='Enter')buscarCodigo()" oninput="onBuscarInput(this.value)">
           <button class="btn btn-rojo btn-sm" style="width:auto;" onclick="buscarCodigo()"><span id="b-txt">Buscar</span></button>
         </div>
         <button class="btn btn-azul" onclick="abrirScan()">📷 Escanear código de barra</button>
@@ -281,7 +281,7 @@ input:focus, select:focus { border-color:var(--rojo); }
             </button>
           </div>
           <p style="font-size:11px;">O escríbelo manualmente:</p>
-          <input type="text" id="a-barcode" placeholder="7802900001234" inputmode="numeric" style="margin-bottom:0;margin-top:6px;" oninput="onBarcodeInput()">
+          <input type="text" id="a-barcode" placeholder="Código de barra o QR..." style="margin-bottom:0;margin-top:6px;" oninput="onBarcodeInput()">
         </div>
         <div id="bc-msg" style="font-size:12px;margin-bottom:12px;display:none;"></div>
 
@@ -466,7 +466,7 @@ function onBuscarInput(val){
   // Las pistolas mandan el código completo muy rápido (< 100ms por caracter)
   // Si el valor tiene 8+ dígitos, esperamos 300ms y si no cambió, buscamos
   clearTimeout(buscarTimer);
-  if(/^\d{8,}$/.test(val.trim())){
+  if(val.trim().length>=6){
     buscarTimer=setTimeout(()=>{
       if(document.getElementById('b-input').value.trim()===val.trim()){
         buscarCodigo();
@@ -622,7 +622,7 @@ function marcarBarcodeLeido(codigo){
   box.innerHTML=`
     <div class="bc-icon">✅</div>
     <div class="bc-numero">${codigo}</div>
-    <input type="text" id="a-barcode" value="${codigo}" inputmode="numeric" style="margin-bottom:8px;text-align:center;" oninput="onBarcodeInput()">
+    <input type="text" id="a-barcode" value="${codigo}" style="margin-bottom:8px;text-align:center;" oninput="onBarcodeInput()">
     <button class="btn btn-gris btn-sm" style="max-width:200px;margin:0 auto;" onclick="resetBarcode()">🔄 Cambiar código</button>`;
 }
 
@@ -638,13 +638,13 @@ function resetBarcode(){
       </button>
     </div>
     <p style="font-size:11px;">O escríbelo manualmente:</p>
-    <input type="text" id="a-barcode" placeholder="7802900001234" inputmode="numeric" style="margin-bottom:0;margin-top:6px;" oninput="onBarcodeInput()">`;
+    <input type="text" id="a-barcode" placeholder="Código de barra o QR..." style="margin-bottom:0;margin-top:6px;" oninput="onBarcodeInput()">`;
   document.getElementById('bc-msg').style.display='none';
 }
 
 function onBarcodeInput(){
   const val=document.getElementById('a-barcode')?.value.trim();
-  if(val&&val.length>=8) marcarBarcodeLeido(val);
+  if(val&&val.length>=6) marcarBarcodeLeido(val);
 }
 
 // ── GUARDAR ───────────────────────────────────────
