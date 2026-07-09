@@ -225,18 +225,24 @@ input:focus, select:focus { border-color:var(--rojo); }
     </div>
   </header>
 
-  <div class="tabs" style="position:relative;">
-    <div id="menu-current" style="display:flex;align-items:center;gap:8px;padding:0 16px;font-size:14px;font-weight:700;color:white;cursor:pointer;flex:1;" onclick="toggleMenu()">
-      <span id="menu-current-label">🔍 Buscar</span>
-    </div>
-    <div onclick="toggleMenu()" style="padding:0 16px;cursor:pointer;font-size:20px;color:white;">☰</div>
-    <div id="menu-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:#1B2A4A;z-index:100;border-top:2px solid #C0392B;box-shadow:0 8px 24px rgba(0,0,0,0.4);">
-      <div class="tab" id="tab-nav-buscar" onclick="showTab('buscar',this);closeMenu();" style="border-radius:0;border-bottom:1px solid rgba(255,255,255,0.1);">🔍 Buscar</div>
-      <div class="tab" id="tab-nav-inventario" style="display:none;border-radius:0;border-bottom:1px solid rgba(255,255,255,0.1);" onclick="showTab('inventario',this);closeMenu();">📋 Mi inventario</div>
-      <div class="tab" id="tab-nav-agregar" style="border-radius:0;border-bottom:1px solid rgba(255,255,255,0.1);" onclick="showTab('agregar',this);closeMenu();">➕ Agregar</div>
-      <div class="tab" id="tab-nav-exportar" style="border-radius:0;border-bottom:1px solid rgba(255,255,255,0.1);" onclick="showTab('exportar',this);closeMenu();">📊 Exportar</div>
-      <div class="tab" id="tab-nav-apikeys" style="display:none;border-radius:0;border-bottom:1px solid rgba(255,255,255,0.1);" onclick="showTab('apikeys',this);closeMenu();">🔑 API Keys</div>
-      <div class="tab" id="tab-nav-admin" style="display:none;border-radius:0;" onclick="showTab('admin',this);closeMenu();">⚙️ Admin</div>
+  <div style="background:#243358;border-bottom:3px solid #C0392B;padding:0 12px;display:flex;align-items:center;height:46px;">
+    <select id="nav-select" onchange="navSelectChange(this)" style="flex:1;background:transparent;border:none;color:white;font-size:15px;font-weight:700;outline:none;cursor:pointer;-webkit-appearance:none;appearance:none;padding:0;">
+      <option value="buscar">🔍 Buscar</option>
+      <option value="inventario" id="nav-opt-inventario" style="display:none;">📋 Mi inventario</option>
+      <option value="agregar" id="nav-opt-agregar">➕ Agregar</option>
+      <option value="exportar">📊 Exportar</option>
+      <option value="apikeys" id="nav-opt-apikeys" style="display:none;">🔑 API Keys</option>
+      <option value="admin" id="nav-opt-admin" style="display:none;">⚙️ Admin</option>
+    </select>
+    <span style="color:white;font-size:18px;pointer-events:none;">▾</span>
+    <!-- tabs ocultos para mantener compatibilidad -->
+    <div style="display:none;">
+      <div class="tab active" id="tab-nav-buscar"></div>
+      <div class="tab" id="tab-nav-inventario"></div>
+      <div class="tab" id="tab-nav-agregar"></div>
+      <div class="tab" id="tab-nav-exportar"></div>
+      <div class="tab" id="tab-nav-apikeys"></div>
+      <div class="tab" id="tab-nav-admin"></div>
     </div>
   </div>
 
@@ -626,12 +632,21 @@ async function mostrarApp(user){
     document.getElementById('tab-nav-inventario').style.display='flex';
     document.getElementById('tab-nav-apikeys').style.display='none';
     document.getElementById('tab-nav-admin').style.display='none';
-    showTab('inventario', document.getElementById('tab-nav-inventario'));
+    document.getElementById('nav-opt-inventario').style.display='';
+    document.getElementById('nav-opt-agregar').style.display='none';
+    document.getElementById('nav-opt-apikeys').style.display='none';
+    document.getElementById('nav-opt-admin').style.display='none';
+    document.getElementById('nav-select').value='inventario';
+    navSelectChange(document.getElementById('nav-select'));
   } else {
     document.getElementById('tab-nav-agregar').style.display='flex';
     document.getElementById('tab-nav-inventario').style.display='none';
     document.getElementById('tab-nav-apikeys').style.display='flex';
     document.getElementById('tab-nav-admin').style.display='flex';
+    document.getElementById('nav-opt-inventario').style.display='none';
+    document.getElementById('nav-opt-agregar').style.display='';
+    document.getElementById('nav-opt-apikeys').style.display='';
+    document.getElementById('nav-opt-admin').style.display='';
   }
 
   cargarContador();
@@ -657,6 +672,15 @@ function closeMenu(){
 document.addEventListener('click',function(e){
   if(!e.target.closest('.tabs')) closeMenu();
 });
+
+function navSelectChange(sel){
+  const tab=sel.value;
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  if(tab==='exportar') loadStats();
+  if(tab==='apikeys') cargarApiKeys();
+  if(tab==='admin') cargarAdmin();
+}
 
 function showTab(tab,el){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
