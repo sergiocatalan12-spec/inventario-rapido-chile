@@ -212,6 +212,20 @@ input:focus, select:focus { border-color:var(--rojo); }
       <div id="tabla-precios"></div>
 
       <button class="btn btn-verde" style="width:100%;margin-top:16px;" onclick="guardarPrecios()">✅ Guardar precios y exportar Excel</button>
+      
+      <!-- Enviar a Bsale -->
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid #eee;">
+        <p style="font-size:12px;color:#7F8C8D;margin-bottom:8px;text-align:center;">¿Tu cliente usa Bsale? Envía directo al sistema</p>
+        <div id="bsale-form" style="display:none;">
+          <input type="text" id="bsale-url" placeholder="Subdominio Bsale (ej: minegocio)" style="margin-bottom:8px;">
+          <input type="text" id="bsale-token" placeholder="Access Token de Bsale" style="margin-bottom:8px;">
+          <button class="btn btn-azul" style="width:100%;margin:0;" onclick="enviarABsale()"><span id="bsale-btn-txt">📤 Enviar a Bsale</span></button>
+          <div id="bsale-msg" style="margin-top:8px;font-size:13px;"></div>
+        </div>
+        <button onclick="document.getElementById('bsale-form').style.display=document.getElementById('bsale-form').style.display==='none'?'block':'none'" style="width:100%;padding:10px;border:1px dashed #B3D4F5;border-radius:8px;background:#F0F7FF;color:#1B2A4A;font-size:13px;font-weight:600;cursor:pointer;">
+          🔗 Conectar con Bsale
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -907,19 +921,20 @@ async function exportarInventario(){
   XLSX.writeFile(wb,`inventario_${nombre.replace(/ /g,'_')}_${fecha.replace(/\//g,'-')}.xlsx`);
 }
 
-async function completarLevantamiento(){
-  if(!invItems.length){alert('No hay productos en tu inventario todavía');return;}
+async function completarLevantamiento(silencioso=false){
+  if(!invItems.length){if(!silencioso)alert('No hay productos en tu inventario todavía');return;}
   
-  // Crear levantamiento en Supabase
   const {data:lev, error}=await supa.from('levantamientos').insert({
     operador_id: usuarioActual.id,
     estado: 'completado',
     completado_at: new Date().toISOString()
   }).select().single();
   
-  if(error){alert('Error al guardar levantamiento');return;}
+  if(error){if(!silencioso)alert('Error al guardar levantamiento');return;}
   
-  // Guardar items
+  // Guardar ID globalmente para uso en envío a ERPs
+  window._lastLevantamientoId = lev.id;
+
   const items=invItems.map(it=>({
     levantamiento_id: lev.id,
     barcode: it.barcode||null,
@@ -928,23 +943,25 @@ async function completarLevantamiento(){
     formato: it.formato||'',
     unidad: it.unidad||'unidad',
     cantidad: it.cantidad,
+    precio_costo: it.precioCompra||0,
+    precio_venta: it.precioVenta||0,
     es_nuevo: it.esNuevo||false
   }));
   
   await supa.from('levantamiento_items').insert(items);
   
-  // Mostrar resultado con ID para compartir a ERP
-  document.getElementById('inv-lista').innerHTML=`
-    <div style="background:#f0f7f0;border:2px solid #27ae60;border-radius:12px;padding:16px;text-align:center;">
-      <p style="font-size:18px;margin-bottom:8px;">✅ Levantamiento completado</p>
-      <p style="font-size:13px;color:var(--suave);margin-bottom:12px;">${invItems.length} productos guardados</p>
-      <p style="font-size:11px;color:var(--suave);margin-bottom:4px;">ID para la ERP:</p>
-      <p style="font-family:monospace;font-size:12px;background:#e8f5e9;padding:8px;border-radius:6px;word-break:break-all;">${lev.id}</p>
-      <p style="font-size:11px;color:var(--suave);margin-top:8px;">Comparte este ID con tu ERP o descarga el Excel</p>
-      <button class="btn btn-verde" style="margin-top:12px;" onclick="exportarInventario()">⬇️ Descargar Excel</button>
-    </div>`;
-  invItems=[];
-  document.getElementById('inv-count').textContent='';
+  if(!silencioso){
+    document.getElementById('inv-lista').innerHTML=`
+      <div style="background:#f0f7f0;border:2px solid #27ae60;border-radius:12px;padding:16px;text-align:center;">
+        <p style="font-size:18px;margin-bottom:8px;">✅ Levantamiento completado</p>
+        <p style="font-size:13px;color:var(--suave);margin-bottom:12px;">${invItems.length} productos guardados</p>
+        <p style="font-size:11px;color:var(--suave);margin-bottom:4px;">ID para la ERP:</p>
+        <p style="font-family:monospace;font-size:12px;background:#e8f5e9;padding:8px;border-radius:6px;word-break:break-all;">${lev.id}</p>
+        <button class="btn btn-verde" style="margin-top:12px;" onclick="exportarInventario()">⬇️ Descargar Excel</button>
+      </div>`;
+    invItems=[];
+    document.getElementById('inv-count').textContent='';
+  }
 }
 
 // ── ADMIN ─────────────────────────────────────────
@@ -1156,6 +1173,51 @@ function recalcMargen(i){
   }
   const el=document.getElementById(`margen-${i}`);
   if(el) el.textContent=it.margen?it.margen+'%':'—';
+}
+
+async function enviarABsale(){
+  const url=document.getElementById('bsale-url').value.trim();
+  const token=document.getElementById('bsale-token').value.trim();
+  const msg=document.getElementById('bsale-msg');
+  if(!url||!token){msg.innerHTML='<span style="color:#c0392b;">❌ Ingresa el subdominio y token de Bsale</span>';return;}
+  if(!invItems.length){msg.innerHTML='<span style="color:#c0392b;">❌ No hay productos en el levantamiento</span>';return;}
+
+  setBtn('bsale-btn-txt',true,'Enviando a Bsale...');
+  msg.innerHTML='<span style="color:#E67E22;">⏳ Conectando con Bsale...</span>';
+
+  try{
+    // Paso 1 — Verificar conexión
+    const conectar=await fetch('/api/bsale?action=conectar',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({bsale_token:token, bsale_url:url, levantamiento_id:'temp'})
+    });
+    const cnx=await conectar.json();
+    if(!cnx.ok) throw new Error(cnx.error||'Error al conectar');
+    msg.innerHTML=`<span style="color:#27ae60;">✅ ${cnx.mensaje}</span>`;
+
+    // Paso 2 — Completar levantamiento y enviar
+    await completarLevantamiento(true); // guarda en Supabase
+    const levId=window._lastLevantamientoId;
+    if(!levId) throw new Error('No se pudo crear el levantamiento');
+
+    msg.innerHTML='<span style="color:#E67E22;">⏳ Enviando productos a Bsale...</span>';
+
+    const enviar=await fetch('/api/bsale?action=enviar',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({bsale_token:token, bsale_url:url, levantamiento_id:levId})
+    });
+    const resultado=await enviar.json();
+    if(!resultado.ok) throw new Error(resultado.error||'Error al enviar');
+
+    msg.innerHTML=`<span style="color:#27ae60;">🎉 ${resultado.mensaje}</span>`;
+    setBtn('bsale-btn-txt',false,'📤 Enviar a Bsale');
+
+  }catch(e){
+    msg.innerHTML=`<span style="color:#c0392b;">❌ ${e.message}</span>`;
+    setBtn('bsale-btn-txt',false,'📤 Enviar a Bsale');
+  }
 }
 
 // ── BUSCAR ────────────────────────────────────────
