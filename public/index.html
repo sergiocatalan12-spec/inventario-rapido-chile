@@ -669,35 +669,52 @@ async function mostrarApp(user){
   if(user.email && user.email.toLowerCase().includes('sergiocatalan')) rol='editor';
 
   // Adaptar interfaz según rol
-  if(rol==='operador'){
-    document.getElementById('tab-nav-agregar').style.display='none';
-    document.getElementById('tab-nav-inventario').style.display='flex';
-    document.getElementById('tab-nav-apikeys').style.display='none';
-    document.getElementById('tab-nav-admin').style.display='none';
-    // Menú nuevo
+  // Detectar si es admin (solo Sergio)
+  const esAdmin = user.email === 'sergiocatalan12@gmail.com';
+  if(esAdmin) rol = 'admin';
+  usuarioActual.rol = rol;
+
+  if(rol === 'operador'){
+    // OPERADOR — solo inventario propio
     const ni=document.getElementById('nav-item-inventario');
     const na=document.getElementById('nav-item-agregar');
     const nk=document.getElementById('nav-item-apikeys');
     const nad=document.getElementById('nav-item-admin');
+    const ne=document.getElementById('nav-item-exportar');
     if(ni) ni.style.display='block';
     if(na) na.style.display='none';
     if(nk) nk.style.display='none';
     if(nad) nad.style.display='none';
+    if(ne) ne.style.display='none';
     selectNav('inventario','📋 Mi inventario');
-  } else {
-    document.getElementById('tab-nav-agregar').style.display='flex';
-    document.getElementById('tab-nav-inventario').style.display='none';
-    document.getElementById('tab-nav-apikeys').style.display='flex';
-    document.getElementById('tab-nav-admin').style.display='flex';
-    // Menú nuevo
+
+  } else if(rol === 'editor'){
+    // EDITOR — solo agregar productos, sin exportar ni admin
     const ni=document.getElementById('nav-item-inventario');
     const na=document.getElementById('nav-item-agregar');
     const nk=document.getElementById('nav-item-apikeys');
     const nad=document.getElementById('nav-item-admin');
+    const ne=document.getElementById('nav-item-exportar');
+    if(ni) ni.style.display='none';
+    if(na) na.style.display='block';
+    if(nk) nk.style.display='none';
+    if(nad) nad.style.display='none';
+    if(ne) ne.style.display='none';
+    selectNav('agregar','➕ Agregar');
+
+  } else {
+    // ADMIN — acceso total
+    const ni=document.getElementById('nav-item-inventario');
+    const na=document.getElementById('nav-item-agregar');
+    const nk=document.getElementById('nav-item-apikeys');
+    const nad=document.getElementById('nav-item-admin');
+    const ne=document.getElementById('nav-item-exportar');
     if(ni) ni.style.display='none';
     if(na) na.style.display='block';
     if(nk) nk.style.display='block';
     if(nad) nad.style.display='block';
+    if(ne) ne.style.display='block';
+    selectNav('buscar','🔍 Buscar');
   }
 
   cargarContador();
@@ -1004,10 +1021,12 @@ async function cargarUsuarios(){
   if(error||!data){el.innerHTML='<p style="color:var(--suave);font-size:13px;text-align:center;padding:16px;">Error al cargar usuarios</p>';return;}
   if(!data.length){el.innerHTML='<p style="color:var(--suave);font-size:13px;text-align:center;padding:16px;">No hay usuarios aún</p>';return;}
 
+  const esAdmin = usuarioActual?.email === 'sergiocatalan12@gmail.com';
+
   el.innerHTML=data.map(u=>`
     <div style="display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--borde);">
-      <div style="width:38px;height:38px;border-radius:50%;background:${u.rol==='editor'?'#1B2A4A':'#C0392B'};display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">
-        ${u.rol==='editor'?'✏️':'📦'}
+      <div style="width:38px;height:38px;border-radius:50%;background:${u.rol==='admin'?'#8E44AD':u.rol==='editor'?'#1B2A4A':'#C0392B'};display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">
+        ${u.rol==='admin'?'👑':u.rol==='editor'?'✏️':'📦'}
       </div>
       <div style="flex:1;min-width:0;">
         <p style="font-weight:700;font-size:14px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${u.full_name||'Sin nombre'}</p>
@@ -1015,16 +1034,31 @@ async function cargarUsuarios(){
         <p style="font-size:10px;color:var(--suave);">${new Date(u.created_at).toLocaleDateString('es-CL')}</p>
       </div>
       <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end;flex-shrink:0;">
-        <span style="padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700;background:${u.rol==='editor'?'#EBF0F8':'#FDECEA'};color:${u.rol==='editor'?'#1B2A4A':'#C0392B'};">${u.rol==='editor'?'Editor':'Operador'}</span>
-        <button onclick="cambiarRol('${u.id}','${u.rol}')" style="font-size:10px;padding:3px 8px;border-radius:6px;border:1px solid var(--borde);background:white;cursor:pointer;color:var(--azul);">
-          ${u.rol==='editor'?'→ Operador':'→ Editor'}
-        </button>
+        <span style="padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700;background:${u.rol==='admin'?'#F3E8FF':u.rol==='editor'?'#EBF0F8':'#FDECEA'};color:${u.rol==='admin'?'#8E44AD':u.rol==='editor'?'#1B2A4A':'#C0392B'};">
+          ${u.rol==='admin'?'👑 Admin':u.rol==='editor'?'✏️ Editor':'📦 Operador'}
+        </span>
+        ${esAdmin && u.email !== 'sergiocatalan12@gmail.com' ? `
+        <select onchange="cambiarRolDirecto('${u.id}', this.value)" style="font-size:10px;padding:3px 6px;border-radius:6px;border:1px solid var(--borde);background:white;cursor:pointer;color:var(--azul);">
+          <option value="operador" ${u.rol==='operador'?'selected':''}>📦 Operador</option>
+          <option value="editor" ${u.rol==='editor'?'selected':''}>✏️ Editor</option>
+        </select>` : ''}
       </div>
     </div>`).join('');
 }
 
+async function cambiarRolDirecto(id, nuevoRol){
+  const {error}=await supa.from('users').update({rol:nuevoRol}).eq('id',id);
+  if(!error) cargarUsuarios();
+  else alert('Error al cambiar rol');
+}
+
 async function cambiarRol(id, rolActual){
-  const nuevoRol=rolActual==='editor'?'operador':'editor';
+  // Solo admin puede cambiar roles
+  if(usuarioActual?.email !== 'sergiocatalan12@gmail.com'){
+    alert('Solo el administrador puede cambiar roles');
+    return;
+  }
+  const nuevoRol=rolActual==='editor'?'operador': rolActual==='operador'?'editor':'operador';
   const {error}=await supa.from('users').update({rol:nuevoRol}).eq('id',id);
   if(!error) cargarUsuarios();
   else alert('Error al cambiar rol');
