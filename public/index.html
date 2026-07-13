@@ -151,8 +151,8 @@ input:focus, select:focus { border-color:var(--rojo); }
       <input type="email" id="login-email" placeholder="tu@email.com" inputmode="email" autocomplete="username">
       <label class="flabel">Contraseña</label>
       <div style="position:relative;">
-        <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')entrar()" style="padding-right:44px;margin-bottom:0;">
-        <span onclick="togglePass('login-pass',this)" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:18px;user-select:none;">👁️</span>
+        <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')entrar()" style="padding-right:52px;margin-bottom:0;">
+        <button type="button" onclick="togglePass('login-pass',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:20px;padding:6px;line-height:1;-webkit-tap-highlight-color:transparent;">👁️</button>
       </div>
       <button class="btn btn-rojo" onclick="entrar()" style="margin-top:12px;"><span id="login-btn-txt">Entrar</span></button>
       <div style="text-align:center;margin-top:10px;">
@@ -169,8 +169,8 @@ input:focus, select:focus { border-color:var(--rojo); }
       <input type="email" id="reg-email" placeholder="tu@email.com" inputmode="email" autocomplete="username">
       <label class="flabel">Contraseña</label>
       <div style="position:relative;">
-        <input type="password" id="reg-pass" placeholder="Mínimo 6 caracteres" autocomplete="new-password" style="padding-right:44px;margin-bottom:0;">
-        <span onclick="togglePass('reg-pass',this)" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:18px;user-select:none;">👁️</span>
+        <input type="password" id="reg-pass" placeholder="Mínimo 6 caracteres" autocomplete="new-password" style="padding-right:52px;margin-bottom:0;">
+        <button type="button" onclick="togglePass('reg-pass',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:20px;padding:6px;line-height:1;-webkit-tap-highlight-color:transparent;">👁️</button>
       </div>
       <label class="flabel">¿CÓMO VAS A USAR LA APP?</label>
       <div style="display:flex;gap:8px;margin-bottom:12px;">
