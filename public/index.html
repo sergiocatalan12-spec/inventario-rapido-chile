@@ -267,17 +267,18 @@ input:focus, select:focus { border-color:var(--rojo); }
     </div>
   </header>
 
-  <div style="background:#243358;border-bottom:3px solid #C0392B;padding:0 12px;display:flex;align-items:center;height:46px;">
-    <select id="nav-select" onchange="navSelectChange(this)" style="flex:1;background:transparent;border:none;color:white;font-size:15px;font-weight:700;outline:none;cursor:pointer;-webkit-appearance:none;appearance:none;padding:0;">
-      <option value="buscar">🔍 Buscar</option>
-      <option value="inventario" id="nav-opt-inventario" style="display:none;">📋 Mi inventario</option>
-      <option value="agregar" id="nav-opt-agregar">➕ Agregar</option>
-      <option value="exportar">📊 Exportar</option>
-      <option value="apikeys" id="nav-opt-apikeys" style="display:none;">🔑 API Keys</option>
-      <option value="admin" id="nav-opt-admin" style="display:none;">⚙️ Admin</option>
-    </select>
-    <span style="color:white;font-size:24px;pointer-events:none;padding-right:8px;">☰</span>
-    <!-- tabs ocultos IDs para compatibilidad con secciones -->
+  <div style="background:#243358;border-bottom:3px solid #C0392B;display:flex;align-items:center;height:46px;position:relative;">
+    <div id="menu-label" style="flex:1;padding:0 16px;font-size:15px;font-weight:700;color:white;">🔍 Buscar</div>
+    <div onclick="toggleMenuNav()" style="padding:0 16px;cursor:pointer;font-size:22px;color:white;line-height:46px;">☰</div>
+    <div id="menu-nav-dropdown" style="display:none;position:absolute;top:46px;left:0;right:0;background:#1B2A4A;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.5);border-top:2px solid #C0392B;">
+      <div onclick="selectNav('buscar','🔍 Buscar')" style="padding:14px 20px;color:white;font-size:15px;font-weight:600;border-bottom:1px solid rgba(255,255,255,0.1);cursor:pointer;">🔍 Buscar</div>
+      <div id="nav-item-inventario" onclick="selectNav('inventario','📋 Mi inventario')" style="display:none;padding:14px 20px;color:white;font-size:15px;font-weight:600;border-bottom:1px solid rgba(255,255,255,0.1);cursor:pointer;">📋 Mi inventario</div>
+      <div id="nav-item-agregar" onclick="selectNav('agregar','➕ Agregar')" style="padding:14px 20px;color:white;font-size:15px;font-weight:600;border-bottom:1px solid rgba(255,255,255,0.1);cursor:pointer;">➕ Agregar</div>
+      <div id="nav-item-exportar" onclick="selectNav('exportar','📊 Exportar')" style="padding:14px 20px;color:white;font-size:15px;font-weight:600;border-bottom:1px solid rgba(255,255,255,0.1);cursor:pointer;">📊 Exportar</div>
+      <div id="nav-item-apikeys" onclick="selectNav('apikeys','🔑 API Keys')" style="display:none;padding:14px 20px;color:white;font-size:15px;font-weight:600;border-bottom:1px solid rgba(255,255,255,0.1);cursor:pointer;">🔑 API Keys</div>
+      <div id="nav-item-admin" onclick="selectNav('admin','⚙️ Admin')" style="display:none;padding:14px 20px;color:white;font-size:15px;font-weight:600;cursor:pointer;">⚙️ Admin</div>
+    </div>
+    <!-- IDs ocultos para compatibilidad -->
     <span id="tab-nav-buscar" style="display:none;"></span>
     <span id="tab-nav-inventario" style="display:none;"></span>
     <span id="tab-nav-agregar" style="display:none;"></span>
@@ -673,21 +674,30 @@ async function mostrarApp(user){
     document.getElementById('tab-nav-inventario').style.display='flex';
     document.getElementById('tab-nav-apikeys').style.display='none';
     document.getElementById('tab-nav-admin').style.display='none';
-    document.getElementById('nav-opt-inventario').style.display='';
-    document.getElementById('nav-opt-agregar').style.display='none';
-    document.getElementById('nav-opt-apikeys').style.display='none';
-    document.getElementById('nav-opt-admin').style.display='none';
-    document.getElementById('nav-select').value='inventario';
-    navSelectChange(document.getElementById('nav-select'));
+    // Menú nuevo
+    const ni=document.getElementById('nav-item-inventario');
+    const na=document.getElementById('nav-item-agregar');
+    const nk=document.getElementById('nav-item-apikeys');
+    const nad=document.getElementById('nav-item-admin');
+    if(ni) ni.style.display='block';
+    if(na) na.style.display='none';
+    if(nk) nk.style.display='none';
+    if(nad) nad.style.display='none';
+    selectNav('inventario','📋 Mi inventario');
   } else {
     document.getElementById('tab-nav-agregar').style.display='flex';
     document.getElementById('tab-nav-inventario').style.display='none';
     document.getElementById('tab-nav-apikeys').style.display='flex';
     document.getElementById('tab-nav-admin').style.display='flex';
-    document.getElementById('nav-opt-inventario').style.display='none';
-    document.getElementById('nav-opt-agregar').style.display='';
-    document.getElementById('nav-opt-apikeys').style.display='';
-    document.getElementById('nav-opt-admin').style.display='';
+    // Menú nuevo
+    const ni=document.getElementById('nav-item-inventario');
+    const na=document.getElementById('nav-item-agregar');
+    const nk=document.getElementById('nav-item-apikeys');
+    const nad=document.getElementById('nav-item-admin');
+    if(ni) ni.style.display='none';
+    if(na) na.style.display='block';
+    if(nk) nk.style.display='block';
+    if(nad) nad.style.display='block';
   }
 
   cargarContador();
@@ -702,38 +712,36 @@ async function mostrarApp(user){
 })();
 
 // ── TABS ──────────────────────────────────────────
-function toggleMenu(){
-  const m=document.getElementById('menu-dropdown');
-  m.style.display=m.style.display==='none'?'block':'none';
+function toggleMenuNav(){
+  const d=document.getElementById('menu-nav-dropdown');
+  if(d) d.style.display=d.style.display==='none'?'block':'none';
 }
+function toggleMenu(){ toggleMenuNav(); }
 function closeMenu(){
-  const m=document.getElementById('menu-dropdown');
-  if(m) m.style.display='none';
+  const d=document.getElementById('menu-nav-dropdown');
+  if(d) d.style.display='none';
 }
 document.addEventListener('click',function(e){
-  if(!e.target.closest('.tabs')) closeMenu();
+  if(!e.target.closest('#menu-nav-dropdown') && !e.target.closest('[onclick*="toggleMenuNav"]') && !e.target.closest('[onclick*="☰"]')){
+    closeMenu();
+  }
 });
-
-function navSelectChange(sel){
-  const tab=sel.value;
+function selectNav(tab, label){
+  const lbl=document.getElementById('menu-label');
+  if(lbl) lbl.textContent=label;
+  closeMenu();
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.getElementById('tab-'+tab).classList.add('active');
+  const sec=document.getElementById('tab-'+tab);
+  if(sec) sec.classList.add('active');
   if(tab==='exportar') loadStats();
   if(tab==='apikeys') cargarApiKeys();
   if(tab==='admin') cargarAdmin();
 }
-
+function navSelectChange(sel){
+  selectNav(sel.value, sel.options[sel.selectedIndex].text);
+}
 function showTab(tab,el){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('tab-'+tab).classList.add('active');
-  // Actualizar label del menú
-  const label=document.getElementById('menu-current-label');
-  if(label) label.textContent=el.textContent.trim();
-  if(tab==='exportar') loadStats();
-  if(tab==='apikeys') cargarApiKeys();
-  if(tab==='admin') cargarAdmin();
+  selectNav(tab, el ? el.textContent.trim() : tab);
 }
 
 // ── CONTADOR ──────────────────────────────────────
