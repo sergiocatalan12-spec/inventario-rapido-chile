@@ -673,18 +673,18 @@ async function mostrarApp(user){
     selectNav('inventario','📋 Mi inventario');
 
   } else if(rol === 'editor'){
-    // EDITOR — solo agregar productos, sin exportar ni admin
+    // EDITOR — solo Buscar (ahí escanea y agrega si no existe)
     const ni=document.getElementById('nav-item-inventario');
     const na=document.getElementById('nav-item-agregar');
     const nk=document.getElementById('nav-item-apikeys');
     const nad=document.getElementById('nav-item-admin');
     const ne=document.getElementById('nav-item-exportar');
     if(ni) ni.style.display='none';
-    if(na) na.style.display='block';
+    if(na) na.style.display='none';
     if(nk) nk.style.display='none';
     if(nad) nad.style.display='none';
     if(ne) ne.style.display='none';
-    selectNav('agregar','➕ Agregar');
+    selectNav('buscar','🔍 Buscar');
 
   } else {
     // ADMIN — acceso total
@@ -1392,33 +1392,153 @@ function marcarBarcodeLeido(codigo){
   if(!container) return;
   
   // Verificar si ya existe en la base de datos
-  fetch(`${SB_URL}/rest/v1/barcodes?gtin=eq.${encodeURIComponent(codigo)}&select=gtin,products(normalized_name,format)`,{headers:H})
+  fetch(`${SB_URL}/rest/v1/barcodes?gtin=eq.${encodeURIComponent(codigo)}&select=gtin,products(normalized_name,format,unit)`,{headers:H})
   .then(r=>r.json())
   .then(existe=>{
     if(existe.length){
       const prod=existe[0]?.products;
+      // ✅ EXISTE — mostrar info y listo
       container.innerHTML=`
         <div style="background:#f0fff4;border:2px solid #27ae60;border-radius:10px;padding:14px;text-align:center;">
-          <p style="font-size:24px;margin-bottom:6px;">✅</p>
-          <p style="font-weight:700;font-size:15px;color:#27ae60;margin-bottom:4px;">¡Producto ya existe en la base de datos!</p>
+          <p style="font-size:28px;margin-bottom:4px;">✅</p>
+          <p style="font-weight:700;font-size:15px;color:#27ae60;margin-bottom:4px;">¡Ya está en la base de datos!</p>
           <p style="font-size:14px;font-weight:600;margin-bottom:4px;">${prod?.normalized_name||'Producto registrado'}</p>
-          <p style="font-size:12px;color:#7F8C8D;margin-bottom:12px;">${prod?.format||''}</p>
-          <p style="font-size:11px;color:#7F8C8D;">Código: ${codigo}</p>
-          <button class="btn btn-gris" style="margin-top:12px;" onclick="limpiar()">🔄 Escanear otro producto</button>
+          <p style="font-size:12px;color:#7F8C8D;margin-bottom:12px;">${prod?.format||''} ${prod?.unit||''}</p>
+          <button class="btn btn-azul" style="margin:0;width:100%;" onclick="resetBcContainer()">📷 Escanear siguiente producto</button>
         </div>`;
     } else {
-      // Producto nuevo — mostrar formulario completo
+      // ⚠️ NO EXISTE — mostrar formulario para agregar ahí mismo
       container.innerHTML=`
-        <div style="background:#fff8e1;border:2px solid #f39c12;border-radius:10px;padding:12px;margin-bottom:8px;">
-          <p style="font-size:13px;color:#e67e22;font-weight:700;">⚠️ Producto nuevo — completa los datos</p>
-          <p style="font-size:12px;color:#7F8C8D;">Código: ${codigo}</p>
+        <div style="background:#fff8e1;border:2px solid #f39c12;border-radius:10px;padding:12px;margin-bottom:12px;">
+          <p style="font-size:13px;color:#e67e22;font-weight:700;">⚠️ Producto nuevo — agrega los datos</p>
+          <p style="font-size:12px;color:#7F8C8D;">Código: <strong>${codigo}</strong></p>
         </div>
-        <input type="text" id="a-barcode" value="${codigo}" style="margin-bottom:8px;text-align:center;font-family:monospace;" readonly>
-        <button class="btn btn-gris" style="padding:8px;font-size:12px;margin-bottom:8px;" onclick="resetBarcode()">🔄 Cambiar código</button>`;
+
+        <label class="flabel">FOTO DEL PRODUCTO *</label>
+        <div class="foto-zone" onclick="document.getElementById('inline-foto').click()" style="margin-bottom:10px;min-height:80px;">
+          <input type="file" id="inline-foto" accept="image/*" capture="environment" style="display:none;" onchange="procesarFotoInline(event,'${codigo}')">
+          <div id="inline-preview" style="text-align:center;padding:16px;">
+            <span style="font-size:32px;">📷</span>
+            <p style="font-size:13px;color:var(--suave);margin-top:4px;">Toca para sacar foto</p>
+          </div>
+        </div>
+
+        <label class="flabel">NOMBRE *</label>
+        <input type="text" id="inline-nombre" placeholder="Ej: Coca-Cola 350ml">
+        <label class="flabel">MARCA *</label>
+        <input type="text" id="inline-marca" placeholder="Ej: Coca-Cola">
+        <label class="flabel">CATEGORÍA *</label>
+        <select id="inline-cat">
+          <option value="">Selecciona categoría</option>
+          <option value="bebidas">🥤 Bebidas</option>
+          <option value="alimentos">🍞 Alimentos</option>
+          <option value="lacteos">🥛 Lácteos</option>
+          <option value="aseo">🧼 Aseo del hogar</option>
+          <option value="higiene">🪥 Higiene personal</option>
+          <option value="snacks">🍿 Snacks y dulces</option>
+          <option value="congelados">🧊 Congelados</option>
+          <option value="carnes">🥩 Carnes y embutidos</option>
+          <option value="verduras">🥦 Verduras y frutas</option>
+          <option value="limpieza">🧹 Limpieza</option>
+          <option value="otros">📦 Otros</option>
+        </select>
+        <label class="flabel">FORMATO / TAMAÑO *</label>
+        <input type="text" id="inline-format" placeholder="Ej: 350ml, 1kg, 200g">
+        <label class="flabel">EMPAQUE</label>
+        <select id="inline-empaque" style="margin-bottom:12px;">
+          <option value="unidad">Unidad suelta</option>
+          <option value="pack6">Six pack x6</option>
+          <option value="pack12">Pack x12</option>
+          <option value="pack24">Caja x24</option>
+          <option value="caja">Caja</option>
+          <option value="bolsa">Bolsa</option>
+        </select>
+        <button class="btn btn-verde" style="margin-bottom:8px;" onclick="guardarInline('${codigo}')"><span id="inline-btn-txt">✓ Guardar producto</span></button>
+        <button class="btn btn-gris" style="padding:10px;" onclick="resetBcContainer()">✕ Cancelar</button>
+        <div id="inline-msg"></div>`;
     }
   }).catch(()=>{
     container.innerHTML=`<input type="text" id="a-barcode" value="${codigo}" style="margin-bottom:8px;text-align:center;font-family:monospace;" readonly>`;
   });
+}
+
+function resetBcContainer(){
+  const container=document.getElementById('bc-container');
+  if(!container) return;
+  container.innerHTML=`
+    <div class="foto-zone" onclick="document.getElementById('bc-foto-input').click()">
+      <input type="file" id="bc-foto-input" accept="image/*" capture="environment" style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;" onchange="leerCodigoFoto(event)">
+      <div style="text-align:center;">
+        <span style="font-size:32px;">📊</span>
+        <p style="font-size:13px;color:var(--suave);margin-top:6px;">Fotografía el código de barra del producto</p>
+      </div>
+    </div>
+    <button class="btn btn-azul" onclick="abrirScan()" style="margin-top:8px;">📷 Fotografiar código de barra</button>
+    <p style="text-align:center;font-size:12px;color:var(--suave);margin:8px 0;">O escríbelo manualmente:</p>
+    <input type="text" id="a-barcode" placeholder="Código de barra o QR..." style="margin-bottom:0;margin-top:6px;" oninput="onBarcodeInput()">`;
+}
+
+let inlineFotoBase64='';
+function procesarFotoInline(event, codigo){
+  const file=event.target.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    inlineFotoBase64=e.target.result.split(',')[1];
+    document.getElementById('inline-preview').innerHTML=`<img src="${e.target.result}" style="max-height:120px;border-radius:8px;object-fit:contain;">`;
+    // Intentar autocompletar con IA
+    fetch('/api/analizar',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({imagen:inlineFotoBase64,barcode:codigo})})
+    .then(r=>r.json()).then(data=>{
+      const txt=data.content?.[0]?.text||'';
+      try{
+        const match=txt.match(/\{[\s\S]*\}/);
+        if(match){
+          const p=JSON.parse(match[0]);
+          if(p.name&&document.getElementById('inline-nombre')) document.getElementById('inline-nombre').value=p.name;
+          if(p.brand&&document.getElementById('inline-marca')) document.getElementById('inline-marca').value=p.brand;
+          if(p.format&&document.getElementById('inline-format')) document.getElementById('inline-format').value=p.format;
+        }
+      }catch(e){}
+    }).catch(()=>{});
+  };
+  reader.readAsDataURL(file);
+}
+
+async function guardarInline(barcode){
+  const nombre=document.getElementById('inline-nombre')?.value.trim();
+  const marca=document.getElementById('inline-marca')?.value.trim();
+  const categoria=document.getElementById('inline-cat')?.value;
+  const formato=document.getElementById('inline-format')?.value.trim();
+  const empaque=document.getElementById('inline-empaque')?.value||'unidad';
+  const msg=document.getElementById('inline-msg');
+
+  if(!nombre||!marca||!categoria||!formato){
+    if(msg) msg.innerHTML='<div class="merr">❌ Completa todos los campos obligatorios</div>';
+    return;
+  }
+  setBtn('inline-btn-txt',true,'Guardando...');
+  try{
+    const resp=await fetch(`${SB_URL}/rest/v1/rpc/guardar_producto`,{
+      method:'POST',
+      headers:{...H,'Content-Type':'application/json'},
+      body:JSON.stringify({p_nombre:`${marca} ${nombre}`,p_formato:formato,p_unidad:empaque,p_barcode:barcode})
+    });
+    const result=await resp.json();
+    if(!result.success) throw new Error(result.error||'Error al guardar');
+    cargarContador();
+    const container=document.getElementById('bc-container');
+    if(container) container.innerHTML=`
+      <div style="background:#f0fff4;border:2px solid #27ae60;border-radius:10px;padding:14px;text-align:center;">
+        <p style="font-size:28px;margin-bottom:4px;">✅</p>
+        <p style="font-weight:700;font-size:15px;color:#27ae60;margin-bottom:4px;">¡Producto guardado!</p>
+        <p style="font-size:14px;margin-bottom:12px;">${marca} ${nombre} — ${formato}</p>
+        <button class="btn btn-azul" style="margin:0;width:100%;" onclick="resetBcContainer()">📷 Escanear siguiente</button>
+      </div>`;
+  }catch(e){
+    if(msg) msg.innerHTML=`<div class="merr">❌ ${e.message}</div>`;
+    setBtn('inline-btn-txt',false,'✓ Guardar producto');
+  }
 }
   const box=document.getElementById('barcode-box');
   box.classList.add('leido');
