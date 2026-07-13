@@ -119,9 +119,9 @@ input:focus, select:focus { border-color:var(--rojo); }
 .spinner { display:inline-block; width:16px; height:16px; border:2px solid rgba(255,255,255,0.3); border-top-color:white; border-radius:50%; animation:spin 0.7s linear infinite; }
 @keyframes spin { to{transform:rotate(360deg);} }
 
-#scan-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.96); z-index:9999; flex-direction:column; align-items:center; justify-content:center; padding:20px; }
-#scan-modal h3 { color:white; font-size:16px; margin-bottom:14px; text-align:center; }
-#scan-div { width:100%; max-width:360px; border-radius:12px; overflow:hidden; min-height:200px; background:#111; }
+#scan-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.98); z-index:9999; flex-direction:column; align-items:center; justify-content:center; padding:10px; }
+#scan-modal h3 { color:white; font-size:16px; margin-bottom:10px; text-align:center; }
+#scan-div { width:100%; max-width:100%; border-radius:12px; overflow:hidden; min-height:260px; background:#111; }
 #scan-status { color:rgba(255,255,255,0.8); font-size:13px; margin-top:12px; text-align:center; padding:0 20px; }
 
 .user-info { background:rgba(255,255,255,0.15); border-radius:8px; padding:4px 10px; font-size:11px; color:white; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -1388,6 +1388,38 @@ async function leerCodigoFoto(event){
 }
 
 function marcarBarcodeLeido(codigo){
+  const container=document.getElementById('bc-container');
+  if(!container) return;
+  
+  // Verificar si ya existe en la base de datos
+  fetch(`${SB_URL}/rest/v1/barcodes?gtin=eq.${encodeURIComponent(codigo)}&select=gtin,products(normalized_name,format)`,{headers:H})
+  .then(r=>r.json())
+  .then(existe=>{
+    if(existe.length){
+      const prod=existe[0]?.products;
+      container.innerHTML=`
+        <div style="background:#f0fff4;border:2px solid #27ae60;border-radius:10px;padding:14px;text-align:center;">
+          <p style="font-size:24px;margin-bottom:6px;">✅</p>
+          <p style="font-weight:700;font-size:15px;color:#27ae60;margin-bottom:4px;">¡Producto ya existe en la base de datos!</p>
+          <p style="font-size:14px;font-weight:600;margin-bottom:4px;">${prod?.normalized_name||'Producto registrado'}</p>
+          <p style="font-size:12px;color:#7F8C8D;margin-bottom:12px;">${prod?.format||''}</p>
+          <p style="font-size:11px;color:#7F8C8D;">Código: ${codigo}</p>
+          <button class="btn btn-gris" style="margin-top:12px;" onclick="limpiar()">🔄 Escanear otro producto</button>
+        </div>`;
+    } else {
+      // Producto nuevo — mostrar formulario completo
+      container.innerHTML=`
+        <div style="background:#fff8e1;border:2px solid #f39c12;border-radius:10px;padding:12px;margin-bottom:8px;">
+          <p style="font-size:13px;color:#e67e22;font-weight:700;">⚠️ Producto nuevo — completa los datos</p>
+          <p style="font-size:12px;color:#7F8C8D;">Código: ${codigo}</p>
+        </div>
+        <input type="text" id="a-barcode" value="${codigo}" style="margin-bottom:8px;text-align:center;font-family:monospace;" readonly>
+        <button class="btn btn-gris" style="padding:8px;font-size:12px;margin-bottom:8px;" onclick="resetBarcode()">🔄 Cambiar código</button>`;
+    }
+  }).catch(()=>{
+    container.innerHTML=`<input type="text" id="a-barcode" value="${codigo}" style="margin-bottom:8px;text-align:center;font-family:monospace;" readonly>`;
+  });
+}
   const box=document.getElementById('barcode-box');
   box.classList.add('leido');
   box.innerHTML=`
@@ -1533,8 +1565,8 @@ function abrirScan(){
   Html5Qrcode.getCameras().then(cameras=>{
     if(!cameras||!cameras.length){document.getElementById('scan-status').textContent='❌ No se encontró cámara.';return;}
     const cam=cameras.find(c=>/back|trasera|rear|environment/i.test(c.label))||cameras[cameras.length-1];
-    const w=Math.min(window.innerWidth-20, window.innerWidth*0.95);
-    qr.start(cam.id,{fps:15,qrbox:{width:Math.round(w*0.85),height:Math.round(w*0.35)},aspectRatio:1.777,
+    const w=window.innerWidth - 20;
+    qr.start(cam.id,{fps:15,qrbox:{width:Math.round(w*0.9),height:Math.round(w*0.35)},aspectRatio:1.777,
       formatsToSupport:[Html5QrcodeSupportedFormats.EAN_13,Html5QrcodeSupportedFormats.EAN_8,Html5QrcodeSupportedFormats.CODE_128,Html5QrcodeSupportedFormats.CODE_39,Html5QrcodeSupportedFormats.UPC_A,Html5QrcodeSupportedFormats.UPC_E]},
       (code)=>{cerrarScan();document.getElementById('b-input').value=code;buscarCodigo();},()=>{})
     .then(()=>{document.getElementById('scan-status').textContent='📦 Apunta al código de barra';})
