@@ -1623,6 +1623,8 @@ async function guardar(){
     document.getElementById('a-msg').innerHTML='<div class="mok">✅ Producto guardado y aprobado correctamente</div>';
     limpiar();
     cargarContador();
+    // Volver a Buscar automáticamente después de 1.5 segundos
+    setTimeout(()=>{ selectNav('buscar','🔍 Buscar'); }, 1500);
   }catch(e){
     document.getElementById('a-msg').innerHTML=`<div class="merr">❌ Error: ${e.message}</div>`;
   }
