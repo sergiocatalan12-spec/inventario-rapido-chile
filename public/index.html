@@ -1542,14 +1542,6 @@ async function guardarInline(barcode){
     setBtn('inline-btn-txt',false,'✓ Guardar producto');
   }
 }
-  const box=document.getElementById('barcode-box');
-  box.classList.add('leido');
-  box.innerHTML=`
-    <div class="bc-icon">✅</div>
-    <div class="bc-numero">${codigo}</div>
-    <input type="text" id="a-barcode" value="${codigo}" style="margin-bottom:8px;text-align:center;" oninput="onBarcodeInput()">
-    <button class="btn btn-gris btn-sm" style="max-width:200px;margin:0 auto;" onclick="resetBarcode()">🔄 Cambiar código</button>`;
-}
 
 function resetBarcode(){
   const box=document.getElementById('barcode-box');
