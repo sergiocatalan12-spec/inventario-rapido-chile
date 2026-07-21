@@ -1157,7 +1157,8 @@ async function enviarPorEmail(){
     alert(`📧 Se abrió tu app de email. El Excel se descargó — adjúntalo al correo.`);
   }
 }
-  if(!invItems.length){alert('No hay productos en el levantamiento');return;}
+
+function abrirPrecios(){
   // Renderizar tabla de precios
   const tabla=document.getElementById('tabla-precios');
   tabla.innerHTML=invItems.map((it,i)=>`
