@@ -1752,7 +1752,19 @@ function abrirScan(){
     const w=window.innerWidth - 20;
     qr.start(cam.id,{fps:15,qrbox:{width:Math.round(w*0.9),height:Math.round(w*0.35)},aspectRatio:1.777,
       formatsToSupport:[Html5QrcodeSupportedFormats.EAN_13,Html5QrcodeSupportedFormats.EAN_8,Html5QrcodeSupportedFormats.CODE_128,Html5QrcodeSupportedFormats.CODE_39,Html5QrcodeSupportedFormats.UPC_A,Html5QrcodeSupportedFormats.UPC_E]},
-      (code)=>{cerrarScan();document.getElementById('b-input').value=code;buscarCodigo();},()=>{})
+      (code)=>{
+        cerrarScan();
+        if(window._scanTarget==='inventario'){
+          // Modo inventario — poner en inv-input y buscar
+          window._scanTarget=null;
+          const invInput=document.getElementById('inv-input');
+          if(invInput){ invInput.value=code; buscarParaInventario(); }
+        } else {
+          // Modo búsqueda normal
+          document.getElementById('b-input').value=code;
+          buscarCodigo();
+        }
+      },()=>{})
     .then(()=>{document.getElementById('scan-status').textContent='📦 Apunta al código de barra';})
     .catch(()=>{document.getElementById('scan-status').textContent='❌ Sin acceso a cámara. Permite el acceso en Ajustes.';});
   }).catch(()=>{document.getElementById('scan-status').textContent='❌ No se pudo acceder a la cámara.';});
