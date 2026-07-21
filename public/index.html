@@ -428,8 +428,8 @@ input:focus, select:focus { border-color:var(--rojo); }
           <h3 style="margin:0;">Productos levantados <span id="inv-count" style="font-size:13px;color:var(--suave);font-weight:400;"></span></h3>
           <div style="display:flex;gap:8px;">
             <button class="btn btn-verde" style="padding:8px 12px;font-size:13px;margin:0;flex:1;" onclick="exportarInventario()">⬇️ Excel</button>
-            <button class="btn btn-azul" style="padding:8px 12px;font-size:13px;margin:0;flex:1;" onclick="abrirPrecios()">💰 Agregar precios</button>
-            <button class="btn" style="padding:8px 12px;font-size:13px;margin:0;flex:1;background:#8E44AD;" onclick="completarLevantamiento()">🔗 Enviar ERP</button>
+            <button class="btn btn-rojo" style="padding:8px 12px;font-size:13px;margin:0;flex:1;" onclick="enviarPorEmail()">📧 Email</button>
+            <button class="btn btn-azul" style="padding:8px 12px;font-size:13px;margin:0;flex:1;" onclick="abrirPrecios()">💰 Precios</button>
           </div>
         </div>
         <div id="inv-lista"><p style="color:var(--suave);font-size:13px;text-align:center;padding:20px 0;">Aún no has agregado productos</p></div>
@@ -1095,7 +1095,68 @@ async function toggleApiKey(id, activo){
   cargarApiKeys();
 }
 
-function abrirPrecios(){
+async function enviarPorEmail(){
+  if(!invItems.length){alert('No hay productos en tu inventario todavía');return;}
+  
+  // Pedir email de destino
+  const emailDestino = prompt('¿A qué email enviamos el inventario?', usuarioActual?.email||'');
+  if(!emailDestino) return;
+  
+  // Generar Excel como base64
+  const nombre=usuarioActual?.user_metadata?.full_name||usuarioActual?.email?.split('@')[0]||'operador';
+  const fecha=new Date().toLocaleDateString('es-CL');
+  const filas=invItems.map(it=>[
+    it.barcode||'',it.nombre,it.empaque||'Unidad',
+    it.formato||'',it.unidad||'',it.cantidad,
+    it.precioCompra||0,it.precioVenta||0,
+    it.margen?it.margen+'%':'',
+    it.precioVenta&&it.cantidad?(it.precioVenta*it.cantidad).toLocaleString('es-CL'):''
+  ]);
+  const ws=XLSX.utils.aoa_to_sheet([
+    ['Código','Producto','Empaque','Formato','Unidad','Cantidad','$ Compra','$ Venta','Margen %','Total Venta'],
+    ...filas
+  ]);
+  ws['!cols']=[{wch:18},{wch:35},{wch:12},{wch:12},{wch:10},{wch:10},{wch:12},{wch:12},{wch:10},{wch:14}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Inventario');
+  const excelB64=XLSX.write(wb,{bookType:'xlsx',type:'base64'});
+  
+  // Guardar en Supabase y enviar email via Edge Function
+  try{
+    // Guardar archivo temporalmente en Supabase Storage y enviar email
+    const resp = await fetch(`${SB_URL}/functions/v1/send-inventory-email`, {
+      method: 'POST',
+      headers: { ...H, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: emailDestino,
+        nombre_operador: nombre,
+        fecha,
+        total_productos: invItems.length,
+        excel_base64: excelB64,
+        archivo_nombre: `inventario_${nombre.replace(/ /g,'_')}_${fecha.replace(/\//g,'-')}.xlsx`
+      })
+    });
+    
+    if(resp.ok){
+      alert(`✅ Inventario enviado a ${emailDestino}`);
+    } else {
+      // Fallback: abrir cliente de email con mailto
+      const subject=encodeURIComponent(`Inventario ${nombre} — ${fecha}`);
+      const body=encodeURIComponent(`Hola,\n\nAdjunto el inventario levantado por ${nombre} el ${fecha}.\n\nTotal: ${invItems.length} productos.\n\nGenerado con Inventario Chile (inventario-rapido-chile.vercel.app)`);
+      window.open(`mailto:${emailDestino}?subject=${subject}&body=${body}`);
+      // También descargar el Excel
+      exportarInventario();
+      alert(`📧 Se abrió tu app de email. El Excel se descargó — adjúntalo al correo.`);
+    }
+  }catch(e){
+    // Fallback mailto
+    const subject=encodeURIComponent(`Inventario ${nombre} — ${fecha}`);
+    const body=encodeURIComponent(`Hola,\n\nAdjunto el inventario levantado por ${nombre} el ${fecha}.\n\nTotal: ${invItems.length} productos.\n\nGenerado con Inventario Chile`);
+    window.open(`mailto:${emailDestino}?subject=${subject}&body=${body}`);
+    exportarInventario();
+    alert(`📧 Se abrió tu app de email. El Excel se descargó — adjúntalo al correo.`);
+  }
+}
   if(!invItems.length){alert('No hay productos en el levantamiento');return;}
   // Renderizar tabla de precios
   const tabla=document.getElementById('tabla-precios');
