@@ -797,12 +797,17 @@ async function buscarParaInventario(){
   // Buscar por barcode primero
   let {data}=await supa.from('barcodes').select('gtin,products(id,normalized_name,format,unit)').eq('gtin',q).maybeSingle();
   let producto=data?.products?data.products:null;
-  let barcode=data?.gtin||q;
+  let barcode=data?.gtin||'';
 
   // Si no encontró, buscar por nombre
   if(!producto){
     const {data:d2}=await supa.from('products').select('id,normalized_name,format,unit').ilike('normalized_name','%'+q+'%').eq('status','aprobado').limit(1).maybeSingle();
     producto=d2;
+    // Buscar barcode del producto encontrado por nombre
+    if(producto){
+      const {data:bc}=await supa.from('barcodes').select('gtin').eq('product_id',producto.id).maybeSingle();
+      barcode=bc?.gtin||'';
+    }
   }
 
   if(producto){
